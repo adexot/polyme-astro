@@ -4,8 +4,12 @@ import sitemap from '@astrojs/sitemap';
 
 import cloudflare from '@astrojs/cloudflare';
 
+import tailwindcss from '@tailwindcss/vite';
+
 // https://astro.build/config
 export default defineConfig({
+  // output: 'server',
+
   // TODO: change to the actual domain
   site: 'https://adexot.github.io',
 
@@ -23,4 +27,8 @@ export default defineConfig({
   },
 
   adapter: cloudflare(),
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

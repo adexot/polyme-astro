@@ -1,0 +1,16 @@
+---
+// Create a custom table with named slot placeholders for header and body content
+---
+
+<div class="bg-[var(--color-slate)] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-[var(--color-charcoal)] border-b border-[var(--color-mist)]">
+                <slot name="header" />
+            </thead>
+            <tbody class="divide-y divide-[var(--color-mist)]">
+                <slot name="body" />
+            </tbody>
+        </table>
+    </div>
+</div>

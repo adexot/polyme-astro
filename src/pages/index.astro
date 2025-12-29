@@ -1,29 +1,108 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PostCard from '../components/PostCard.astro';
-import { getCollection } from 'astro:content';
+import Table from "../components/Table.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getActivityByUser } from "../lib/services";
+import { activityData as activityDataMock } from "../fixtures/activity_data";
+import { convertTimestampToDate, volumeMetricsCalc } from "../lib/utils";
+import type { Activity } from "../types/polymarket";
 
-const posts = (await getCollection('posts'))
-  .filter(post => !post.data.draft)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const activityData: Activity[] | null = import.meta.env.PROD
+    ? (await getActivityByUser(import.meta.env.VITE_TEST_USER)).data
+    : activityDataMock;
+const isActivityDataValid = activityData && activityData.length > 0;
+const volumeMetrics = volumeMetricsCalc(activityData || []);
 ---
 
-<BaseLayout title="Terminal">
-  <div class="index-content framed">
-    <h1 id="hello-there">Hello there!</h1>
-    <p>Welcome to the Astro Terminal theme! This is a port of the popular Hugo Terminal theme by panr, bringing the same retro terminal aesthetic to Astro.</p>
-    <p>
-      You can customise the colour scheme using panr's <a href="https://panr.github.io/terminal-css/"><strong>Terminal.css</strong></a> 
-      generator - all generated schemes are fully compatible with this theme.
-    </p>
-    <p>
-      <a href="https://panr.github.io/terminal-css/">
-        <img src="https://panr.github.io/hugo-theme-terminal-demo/img/terminal-css.png" alt="Terminal.css Preview" />
-      </a>
-    </p>
-  </div>
-  
-  <div class="posts">
-    {posts.map((post) => <PostCard post={post} />)}
-  </div>
+<BaseLayout title="Activity">
+    {/* Volume Summary Boxes */}
+    {
+        isActivityDataValid && (
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-6">
+                {/* BUY Volume */}
+                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                    <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
+                        BUY Volume
+                    </div>
+                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">
+                        {volumeMetrics.buyCount}
+                    </div>
+                    <div class="text-lg text-[var(--color-coral)]">
+                        ${volumeMetrics.buyTotal.toLocaleString()}
+                    </div>
+                </div>
+
+                {/* REDEEM Volume */}
+                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                    <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
+                        REDEEM Volume
+                    </div>
+                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">
+                        {volumeMetrics.redeemCount}
+                    </div>
+                    <div class="text-lg text-[var(--color-cyan)]">
+                        ${volumeMetrics.redeemTotal.toLocaleString()}
+                    </div>
+                </div>
+
+                {/* Difference */}
+                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                    <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
+                        Difference
+                    </div>
+                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">
+                        {volumeMetrics.buyCount - volumeMetrics.redeemCount}
+                        <span class="text-sm text-gray-500">
+                            unsuccessful trades
+                        </span>
+                    </div>
+                    <div
+                        class={`text-lg ${
+                            volumeMetrics.difference >= 0
+                                ? "text-[var(--color-cyan)]"
+                                : "text-[var(--color-coral)]"
+                        }`}
+                    >
+                        ${volumeMetrics.difference.toLocaleString()}
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    <!-- Table to show all activity data -->
+    {
+        isActivityDataValid && (
+            <Table>
+                <Fragment slot="header">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                            Time
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                            Title
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                            Type
+                        </th>
+                    </tr>
+                </Fragment>
+                <Fragment slot="body">
+                    {isActivityDataValid &&
+                        activityData.map((activity) => (
+                            <tr class="hover:bg-[var(--color-charcoal)]/50 transition-colors">
+                                <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                    {convertTimestampToDate(activity.timestamp)}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                    {activity.title}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                    {activity.type}
+                                </td>
+                            </tr>
+                        ))}
+                </Fragment>
+            </Table>
+        )
+    }
 </BaseLayout>
