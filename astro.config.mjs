@@ -2,12 +2,18 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
+import cloudflare from '@astrojs/cloudflare';
+
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://dennisklappe.github.io',
+  // TODO: change to the actual domain
+  site: 'https://adexot.github.io',
+
   // Only use base path in production (GitHub Pages)
-  base: process.env.NODE_ENV === 'production' ? '/astro-theme-terminal' : '/',
+  base: '/',
+
   integrations: [sitemap()],
+
   markdown: {
     shikiConfig: {
       theme: 'css-variables',
@@ -15,4 +21,6 @@ export default defineConfig({
       wrap: true,
     },
   },
+
+  adapter: cloudflare(),
 });
