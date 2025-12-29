@@ -5,6 +5,7 @@ import { getActivityByUser } from "../lib/services";
 import { activityData as activityDataMock } from "../fixtures/activity_data";
 import { convertTimestampToDate, volumeMetricsCalc } from "../lib/utils";
 import type { Activity } from "../types/polymarket";
+import Analyze from "../components/Analyze.astro";
 
 const activityData: Activity[] | null = import.meta.env.PROD
     ? (await getActivityByUser(import.meta.env.VITE_TEST_USER)).data
@@ -14,10 +15,11 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
 ---
 
 <BaseLayout title="Activity">
+    <div class="text-lg font-bold text-cyan-400 my-2">Summary</div>
     {/* Volume Summary Boxes */}
     {
         isActivityDataValid && (
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {/* BUY Volume */}
                 <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
                     <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
@@ -69,7 +71,12 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
         )
     }
 
+    <div class="text-lg font-bold text-cyan-400 my-2">Analyze</div>
+    {isActivityDataValid && <Analyze activityData={activityData} />}
+
+    
     <!-- Table to show all activity data -->
+    <div class="text-lg font-bold text-cyan-400 my-2">Activity</div>
     {
         isActivityDataValid && (
             <Table>

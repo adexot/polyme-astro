@@ -1,0 +1,169 @@
+---
+import type { Activity } from "../types/polymarket";
+
+export interface Props {
+    activityData: Activity[] | null;
+}
+
+const { activityData } = Astro.props;
+
+// Helper function to get the bucket info for a timestamp (12pm Day1 to 12pm Day2)
+function getBucketInfo(timestamp: number): { key: string; startDate: Date } {
+    const date = new Date(timestamp * 1000);
+    const hour = date.getUTCHours();
+    
+    // If before 12pm (noon), it belongs to previous day's bucket
+    // If 12pm or after, it belongs to current day's bucket
+    let bucketDate = new Date(date);
+    if (hour < 12) {
+        bucketDate.setUTCDate(bucketDate.getUTCDate() - 1);
+    }
+    
+    // Set to start of day (midnight) for consistent bucket start
+    bucketDate.setUTCHours(0, 0, 0, 0);
+    
+    const day1 = new Date(bucketDate);
+    const day2 = new Date(day1);
+    day2.setUTCDate(day2.getUTCDate() + 1);
+    
+    // Format dates as "MMM DD, YYYY"
+    const formatDate = (d: Date) => {
+        return d.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            timeZone: 'UTC'
+        });
+    };
+    
+    return {
+        key: `${formatDate(day1)} - ${formatDate(day2)}`,
+        startDate: day1
+    };
+}
+
+// Helper function to calculate metrics for a group of activities
+function calculateBucketMetrics(activities: Activity[]) {
+    const buyActivities = activities.filter(
+        (a) => a.side === "BUY" || a.type === "TRADE"
+    );
+    const redeemActivities = activities.filter((a) => a.type === "REDEEM");
+    
+    const buyTotal = buyActivities.reduce(
+        (sum, a) => sum + (a.usdcSize || 0),
+        0
+    );
+    const redeemTotal = redeemActivities.reduce(
+        (sum, a) => sum + (a.usdcSize || 0),
+        0
+    );
+    
+    return {
+        buyCount: buyActivities.length,
+        buyTotal: Number(buyTotal.toFixed(2)),
+        redeemCount: redeemActivities.length,
+        redeemTotal: Number(redeemTotal.toFixed(2)),
+        difference: Number((redeemTotal - buyTotal).toFixed(2)),
+    };
+}
+
+// Group activities into buckets
+interface BucketData {
+    key: string;
+    startDate: Date;
+    activities: Activity[];
+}
+
+const buckets = new Map<string, BucketData>();
+
+if (activityData && activityData.length > 0) {
+    activityData.forEach((activity) => {
+        const bucketInfo = getBucketInfo(activity.timestamp);
+        if (!buckets.has(bucketInfo.key)) {
+            buckets.set(bucketInfo.key, {
+                key: bucketInfo.key,
+                startDate: bucketInfo.startDate,
+                activities: []
+            });
+        }
+        buckets.get(bucketInfo.key)!.activities.push(activity);
+    });
+}
+
+// Convert to array and sort by date (most recent first)
+const bucketEntries = Array.from(buckets.values()).sort((a, b) => {
+    return b.startDate.getTime() - a.startDate.getTime();
+});
+---
+
+{activityData && activityData.length > 0 && bucketEntries.length > 0 ? (
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {bucketEntries.map((bucket) => {
+            const metrics = calculateBucketMetrics(bucket.activities);
+            return (
+                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-4">
+                    <div class="text-sm font-semibold text-[var(--color-cyan)] mb-2 border-b border-[var(--color-mist)]">
+                        {bucket.key}
+                    </div>
+                    
+                    <div class="space-y-1">
+                        {/* BUY Metrics */}
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
+                                BUY
+                            </span>
+                            <div class="text-right">
+                                <div class="text-sm font-semibold text-[var(--color-bone)]">
+                                    {metrics.buyCount} trades
+                                </div>
+                                <div class="text-sm text-[var(--color-coral)]">
+                                    ${metrics.buyTotal.toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* REDEEM Metrics */}
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
+                                REDEEM
+                            </span>
+                            <div class="text-right">
+                                <div class="text-sm font-semibold text-[var(--color-bone)]">
+                                    {metrics.redeemCount} trades
+                                </div>
+                                <div class="text-sm text-[var(--color-cyan)]">
+                                    ${metrics.redeemTotal.toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Difference */}
+                        <div class="flex justify-between items-center pt-2 border-t border-[var(--color-mist)]">
+                            <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
+                                Difference
+                            </span>
+                            <div class="text-right">
+                                <div class="text-sm font-semibold text-[var(--color-bone)]">
+                                    {metrics.buyCount - metrics.redeemCount}
+                                </div>
+                                <div
+                                    class={`text-sm font-semibold ${
+                                        metrics.difference >= 0
+                                            ? "text-green-400"
+                                            : "text-red-400"
+                                    }`}
+                                >
+                                    ${metrics.difference.toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        })}
+    </div>
+) : (
+    <div class="text-center text-[var(--color-ash)] py-8">
+        No activity data available
+    </div>
+)}
