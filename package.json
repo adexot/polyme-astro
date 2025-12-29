@@ -1,0 +1,32 @@
+{
+  "name": "polyme-astro",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "PolyMe: Better polymarket data visualization",
+  "license": "MIT",
+  "author": "Adekunle Oseni",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adexot/polyme-astro"
+  },
+  "keywords": [
+    "polymarket",
+    "data visualization"
+  ],
+  "scripts": {
+    "dev": "astro dev",
+    "check": "astro check",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.15.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.5",
+    "@astrojs/rss": "^4.0.13",
+    "@astrojs/sitemap": "^3.6.0",
+    "typescript": "^5.9.3"
+  }
+}
