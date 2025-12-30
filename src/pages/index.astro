@@ -7,28 +7,60 @@ import { convertTimestampToDate, volumeMetricsCalc } from "../lib/utils";
 import type { Activity } from "../types/polymarket";
 import Analyze from "../components/Analyze.astro";
 
+// Serialize initial data for client-side use
+const initialUser = import.meta.env.VITE_TEST_USER || '';
 const activityData: Activity[] | null = import.meta.env.PROD
-    ? (await getActivityByUser(import.meta.env.VITE_TEST_USER)).data
+    ? (await getActivityByUser(initialUser)).data
     : activityDataMock;
 const isActivityDataValid = activityData && activityData.length > 0;
 const volumeMetrics = volumeMetricsCalc(activityData || []);
+
+
 ---
 
 <BaseLayout title="Activity">
+    <!-- User Input Section -->
+    <div class="mb-6">
+        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+            <div class="flex-1 w-full sm:w-auto">
+                <label for="user-input" class="block text-sm font-medium text-[var(--color-cyan)] mb-2">
+                    User Address
+                </label>
+                <input
+                    type="text"
+                    id="user-input"
+                    value={initialUser}
+                    placeholder="Enter user address (e.g., 0x...)"
+                    class="w-full px-4 bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg text-[var(--color-bone)] placeholder:text-[var(--color-ash)] focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)] focus:border-transparent"
+                />
+            </div>
+            <button
+                id="fetch-button"
+                class="px-6 py-2 bg-[var(--color-cyan)] text-[var(--color-slate)] font-semibold rounded-lg hover:bg-[var(--color-cyan)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+                Fetch Activity
+            </button>
+        </div>
+        <div id="error-message" class="mt-2 text-sm text-[var(--color-coral)] hidden"></div>
+        <div id="loading-indicator" class="mt-2 text-sm text-[var(--color-cyan)] hidden">
+            Loading...
+        </div>
+    </div>
+
     <div class="text-lg font-bold text-cyan-400 my-2">Summary</div>
     {/* Volume Summary Boxes */}
-    {
-        isActivityDataValid && (
+    <div id="summary-section">
+        {isActivityDataValid && (
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {/* BUY Volume */}
                 <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
                     <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
                         BUY Volume
                     </div>
-                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">
+                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1" id="buy-count">
                         {volumeMetrics.buyCount}
                     </div>
-                    <div class="text-lg text-[var(--color-coral)]">
+                    <div class="text-lg text-[var(--color-coral)]" id="buy-total">
                         ${volumeMetrics.buyTotal.toLocaleString()}
                     </div>
                 </div>
@@ -38,10 +70,10 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                     <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
                         REDEEM Volume
                     </div>
-                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">
+                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1" id="redeem-count">
                         {volumeMetrics.redeemCount}
                     </div>
-                    <div class="text-lg text-[var(--color-cyan)]">
+                    <div class="text-lg text-[var(--color-cyan)]" id="redeem-total">
                         ${volumeMetrics.redeemTotal.toLocaleString()}
                     </div>
                 </div>
@@ -51,7 +83,7 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                     <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
                         Difference
                     </div>
-                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">
+                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1" id="difference-count">
                         {volumeMetrics.buyCount - volumeMetrics.redeemCount}
                         <span class="text-sm text-gray-500">
                             unsuccessful trades
@@ -63,22 +95,25 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                                 ? "text-[var(--color-cyan)]"
                                 : "text-[var(--color-coral)]"
                         }`}
+                        id="difference-total"
                     >
                         ${volumeMetrics.difference.toLocaleString()}
                     </div>
                 </div>
             </div>
-        )
-    }
+        )}
+    </div>
 
     <div class="text-lg font-bold text-cyan-400 my-2">Analyze</div>
-    {isActivityDataValid && <Analyze activityData={activityData} />}
+    <div id="analyze-section">
+        {isActivityDataValid && <Analyze activityData={activityData} />}
+    </div>
 
     
     <!-- Table to show all activity data -->
     <div class="text-lg font-bold text-cyan-400 my-2">Activity</div>
-    {
-        isActivityDataValid && (
+    <div id="table-section">
+        {isActivityDataValid && (
             <Table>
                 <Fragment slot="header">
                     <tr>
@@ -110,6 +145,334 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                         ))}
                 </Fragment>
             </Table>
-        )
-    }
+        )}
+    </div>
+
+    <script>
+        // @ts-nocheck
+        // Client-side utility functions
+        function calculateMetrics(activityData) {
+            if (!activityData || activityData.length === 0) {
+                return {
+                    buyCount: 0,
+                    buyTotal: 0,
+                    redeemCount: 0,
+                    redeemTotal: 0,
+                    difference: 0,
+                };
+            }
+
+            const buyActivities = activityData.filter(
+                (a) => a.side === "BUY" || a.type === "TRADE",
+            );
+            const redeemActivities = activityData.filter((a) => a.type === "REDEEM");
+
+            const buyTotal = buyActivities.reduce(
+                (sum, a) => sum + (a.usdcSize || 0),
+                0,
+            );
+            const redeemTotal = redeemActivities.reduce(
+                (sum, a) => sum + (a.usdcSize || 0),
+                0,
+            );
+
+            return {
+                buyCount: buyActivities.length,
+                buyTotal: Number(buyTotal.toFixed(2)),
+                redeemCount: redeemActivities.length,
+                redeemTotal: Number(redeemTotal.toFixed(2)),
+                difference: Number((redeemTotal - buyTotal).toFixed(2)),
+            };
+        }
+
+        function formatTimestamp(timestamp: number) {
+            return new Date(timestamp * 1000).toLocaleString(undefined, {
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+                timeZone: "UTC",
+            });
+        }
+
+        async function fetchActivityData(user: string) {
+            console.log('fetchActivityData', user);
+            const apiBaseUrl = 'https://data-api.polymarket.com';
+            const apiUrl = new URL(`${apiBaseUrl}/activity`);
+            apiUrl.searchParams.set('user', user);
+            apiUrl.searchParams.set('limit', '500');
+            apiUrl.searchParams.set('offset', '0');
+
+            const response = await fetch(apiUrl.toString(), {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        function updateSummary(metrics, hasData) {
+            const summarySection = document.getElementById('summary-section');
+            if (!summarySection) return;
+
+            if (!hasData) {
+                summarySection.innerHTML = '';
+                return;
+            }
+
+            summarySection.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                        <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">BUY Volume</div>
+                        <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">${metrics.buyCount}</div>
+                        <div class="text-lg text-[var(--color-coral)]">$${metrics.buyTotal.toLocaleString()}</div>
+                    </div>
+                    <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                        <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">REDEEM Volume</div>
+                        <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">${metrics.redeemCount}</div>
+                        <div class="text-lg text-[var(--color-cyan)]">$${metrics.redeemTotal.toLocaleString()}</div>
+                    </div>
+                    <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                        <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">Difference</div>
+                        <div class="text-2xl font-bold text-[var(--color-bone)] mb-1">
+                            ${metrics.buyCount - metrics.redeemCount}
+                            <span class="text-sm text-gray-500"> unsuccessful trades</span>
+                        </div>
+                        <div class="text-lg ${metrics.difference >= 0 ? 'text-[var(--color-cyan)]' : 'text-[var(--color-coral)]'}">
+                            $${metrics.difference.toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTable(activityData) {
+            const tableSection = document.getElementById('table-section');
+            if (!tableSection) return;
+
+            if (!activityData || activityData.length === 0) {
+                tableSection.innerHTML = '<div class="text-center text-[var(--color-ash)] py-8">No activity data available</div>';
+                return;
+            }
+
+            const tableHTML = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-[var(--color-mist)]">
+                        <thead class="bg-[var(--color-slate)]">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                    Time
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                    Title
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                    Type
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-[var(--color-slate)] divide-y divide-[var(--color-mist)]">
+                            ${activityData.map((activity) => `
+                                <tr class="hover:bg-[var(--color-charcoal)]/50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                        ${formatTimestamp(activity.timestamp)}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                        ${activity.title || ''}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                        ${activity.type || ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            tableSection.innerHTML = tableHTML;
+        }
+
+        function getBucketInfo(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const hour = date.getUTCHours();
+            
+            let bucketDate = new Date(date);
+            if (hour < 12) {
+                bucketDate.setUTCDate(bucketDate.getUTCDate() - 1);
+            }
+            
+            bucketDate.setUTCHours(0, 0, 0, 0);
+            
+            const day1 = new Date(bucketDate);
+            const day2 = new Date(day1);
+            day2.setUTCDate(day2.getUTCDate() + 1);
+            
+            const formatDate = (d) => {
+                return d.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    timeZone: 'UTC'
+                });
+            };
+            
+            return {
+                key: `${formatDate(day1)} - ${formatDate(day2)}`,
+                startDate: day1
+            };
+        }
+
+        function calculateBucketMetrics(activities) {
+            const buyActivities = activities.filter(
+                (a) => a.side === "BUY" || a.type === "TRADE"
+            );
+            const redeemActivities = activities.filter((a) => a.type === "REDEEM");
+            
+            const buyTotal = buyActivities.reduce(
+                (sum, a) => sum + (a.usdcSize || 0),
+                0
+            );
+            const redeemTotal = redeemActivities.reduce(
+                (sum, a) => sum + (a.usdcSize || 0),
+                0
+            );
+            
+            return {
+                buyCount: buyActivities.length,
+                buyTotal: Number(buyTotal.toFixed(2)),
+                redeemCount: redeemActivities.length,
+                redeemTotal: Number(redeemTotal.toFixed(2)),
+                difference: Number((redeemTotal - buyTotal).toFixed(2)),
+            };
+        }
+
+        function updateAnalyze(activityData) {
+            const analyzeSection = document.getElementById('analyze-section');
+            if (!analyzeSection) return;
+
+            if (!activityData || activityData.length === 0) {
+                analyzeSection.innerHTML = '<div class="text-center text-[var(--color-ash)] py-8">No activity data available</div>';
+                return;
+            }
+
+            // Group activities into buckets
+            const buckets = new Map();
+            activityData.forEach((activity) => {
+                const bucketInfo = getBucketInfo(activity.timestamp);
+                if (!buckets.has(bucketInfo.key)) {
+                    buckets.set(bucketInfo.key, {
+                        key: bucketInfo.key,
+                        startDate: bucketInfo.startDate,
+                        activities: []
+                    });
+                }
+                buckets.get(bucketInfo.key).activities.push(activity);
+            });
+
+            // Convert to array and sort by date (most recent first)
+            const bucketEntries = Array.from(buckets.values()).sort((a, b) => {
+                return b.startDate.getTime() - a.startDate.getTime();
+            });
+
+            // Generate HTML for bucket cards
+            const bucketsHTML = bucketEntries.map((bucket) => {
+                const metrics = calculateBucketMetrics(bucket.activities);
+                return `
+                    <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-4">
+                        <div class="text-sm font-semibold text-[var(--color-cyan)] mb-2 border-b border-[var(--color-mist)]">
+                            ${bucket.key}
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">BUY</span>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-[var(--color-bone)]">${metrics.buyCount} trades</div>
+                                    <div class="text-sm text-[var(--color-coral)]">$${metrics.buyTotal.toLocaleString()}</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">REDEEM</span>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-[var(--color-bone)]">${metrics.redeemCount} trades</div>
+                                    <div class="text-sm text-[var(--color-cyan)]">$${metrics.redeemTotal.toLocaleString()}</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-[var(--color-mist)]">
+                                <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">Difference</span>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-[var(--color-bone)]">${metrics.buyCount - metrics.redeemCount}</div>
+                                    <div class="text-sm font-semibold ${metrics.difference >= 0 ? 'text-green-400' : 'text-red-400'}">$${metrics.difference.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            analyzeSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${bucketsHTML}</div>`;
+        }
+
+        // Event handlers
+        const userInput = document.getElementById('user-input') as HTMLInputElement;
+        const fetchButton = document.getElementById('fetch-button') as HTMLButtonElement;
+        const errorMessage = document.getElementById('error-message');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        fetchButton?.addEventListener('click', async () => {
+            // polymarket adds timestamp to the user address when copied from the website
+            const user = userInput?.value.trim().split('-')[0];
+            
+            if (!user) {
+                if (errorMessage) {
+                    errorMessage.textContent = 'Please enter a user address';
+                    errorMessage.classList.remove('hidden');
+                }
+                return;
+            }
+
+            // Show loading state
+            fetchButton.disabled = true;
+            if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+            if (errorMessage) errorMessage.classList.add('hidden');
+
+            try {
+                const activityData = await fetchActivityData(user);
+                
+                if (!activityData || activityData.length === 0) {
+                    throw new Error('No activity data found for this user');
+                }
+
+                const metrics = calculateMetrics(activityData || []);
+                updateSummary(metrics, activityData && activityData.length > 0);
+                updateTable(activityData);
+                updateAnalyze(activityData);
+
+                // Hide loading, show success
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+            } catch (error) {
+                console.error('Error fetching activity:', error);
+                if (errorMessage) {
+                    errorMessage.textContent = error instanceof Error ? error.message : 'Failed to fetch activity data';
+                    errorMessage.classList.remove('hidden');
+                }
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+            } finally {
+                fetchButton.disabled = false;
+            }
+        });
+
+        // Allow Enter key to trigger fetch
+        userInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                fetchButton?.click();
+            }
+        });
+    </script>
 </BaseLayout>
