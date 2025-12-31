@@ -224,7 +224,6 @@ const serializedActivityData = JSON.stringify(activityData || []);
         }
 
         async function fetchActivityData(user: string, maxRecords: number, onProgress?: (current: number, total: number) => void) {
-            console.log('fetchActivityData', user, 'maxRecords:', maxRecords);
             const apiBaseUrl = 'https://data-api.polymarket.com';
             const limit = 100;
             const MAX_RECORDS = maxRecords || 1000;
