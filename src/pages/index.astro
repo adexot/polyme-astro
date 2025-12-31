@@ -207,6 +207,7 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
             console.log('fetchActivityData', user);
             const apiBaseUrl = 'https://data-api.polymarket.com';
             const limit = 100;
+            const MAX_RECORDS = 1000;
             let offset = 0;
             const allActivities: any[] = [];
             let pageCount = 0;
@@ -238,9 +239,9 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                 allActivities.push(...firstPageData);
                 pageCount = 1;
                 
-                // If we got a full page, estimate there might be more
+                // If we got a full page, estimate there might be more (up to MAX_RECORDS)
                 if (firstPageData.length === limit) {
-                    totalEstimated = limit * 2; // Start with estimate of 2 pages
+                    totalEstimated = Math.min(limit * 2, MAX_RECORDS); // Start with estimate of 2 pages, but cap at MAX_RECORDS
                     if (onProgress) {
                         onProgress(allActivities.length, totalEstimated);
                     }
@@ -249,12 +250,17 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                     return allActivities;
                 }
 
-                // Continue fetching remaining pages
-                while (true) {
+                // Continue fetching remaining pages up to MAX_RECORDS
+                while (allActivities.length < MAX_RECORDS) {
                     offset += limit;
+                    
+                    // Calculate how many records we still need
+                    const remainingRecords = MAX_RECORDS - allActivities.length;
+                    const currentLimit = Math.min(limit, remainingRecords);
+                    
                     const apiUrl = new URL(`${apiBaseUrl}/activity`);
                     apiUrl.searchParams.set('user', user);
-                    apiUrl.searchParams.set('limit', limit.toString());
+                    apiUrl.searchParams.set('limit', currentLimit.toString());
                     apiUrl.searchParams.set('offset', offset.toString());
 
                     const response = await fetch(apiUrl.toString(), {
@@ -274,14 +280,15 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                         break;
                     }
 
-                    // Add this page's data to the collection
-                    allActivities.push(...pageData);
+                    // Add this page's data to the collection (only up to MAX_RECORDS)
+                    const recordsToAdd = Math.min(pageData.length, remainingRecords);
+                    allActivities.push(...pageData.slice(0, recordsToAdd));
                     pageCount++;
 
                     // Update progress
-                    if (pageData.length === limit) {
-                        // Might be more pages, update estimate
-                        totalEstimated = Math.max(totalEstimated, allActivities.length + limit);
+                    if (pageData.length === limit && allActivities.length < MAX_RECORDS) {
+                        // Might be more pages, update estimate (but cap at MAX_RECORDS)
+                        totalEstimated = Math.min(Math.max(totalEstimated, allActivities.length + limit), MAX_RECORDS);
                     } else {
                         // Got less than limit, this is the last page
                         totalEstimated = allActivities.length;
@@ -291,8 +298,8 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                         onProgress(allActivities.length, totalEstimated);
                     }
 
-                    // If we got less than the limit, we've reached the end
-                    if (pageData.length < limit) {
+                    // If we've reached the maximum or got less than the limit, we're done
+                    if (allActivities.length >= MAX_RECORDS || pageData.length < limit) {
                         break;
                     }
                 }

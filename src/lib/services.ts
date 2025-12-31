@@ -4,12 +4,13 @@ export const getActivityByUser = async (user: string): Promise<{data: Activity[]
   // Get API URL from environment variable or use default
   const apiBaseUrl = import.meta.env.POLYMARKET_DATA_API || 'https://data-api.polymarket.com';
   const limit = 100;
+  const MAX_RECORDS = 1000;
   let offset = 0;
   const allActivities: Activity[] = [];
 
   try {
-    // Fetch all pages of data
-    while (true) {
+    // Fetch pages of data up to MAX_RECORDS
+    while (allActivities.length < MAX_RECORDS) {
       const apiUrl = new URL(`${apiBaseUrl}/activity`);
 
       // Add query parameters to the API URL
@@ -17,7 +18,11 @@ export const getActivityByUser = async (user: string): Promise<{data: Activity[]
         apiUrl.searchParams.set('user', user);
       }
 
-      apiUrl.searchParams.set('limit', limit.toString());
+      // Calculate how many records we still need
+      const remainingRecords = MAX_RECORDS - allActivities.length;
+      const currentLimit = Math.min(limit, remainingRecords);
+
+      apiUrl.searchParams.set('limit', currentLimit.toString());
       apiUrl.searchParams.set('offset', offset.toString());
 
       // Fetch data from the Polymarket Data API
@@ -39,11 +44,12 @@ export const getActivityByUser = async (user: string): Promise<{data: Activity[]
         break;
       }
 
-      // Add this page's data to the collection
-      allActivities.push(...pageData);
+      // Add this page's data to the collection (only up to MAX_RECORDS)
+      const recordsToAdd = Math.min(pageData.length, remainingRecords);
+      allActivities.push(...pageData.slice(0, recordsToAdd));
 
-      // If we got less than the limit, we've reached the end
-      if (pageData.length < limit) {
+      // If we've reached the maximum or got less than the limit, we're done
+      if (allActivities.length >= MAX_RECORDS || pageData.length < limit) {
         break;
       }
 
