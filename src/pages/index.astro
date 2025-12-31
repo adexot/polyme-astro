@@ -37,6 +37,20 @@ const serializedActivityData = JSON.stringify(activityData || []);
                     class="w-full px-4 bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg text-[var(--color-bone)] placeholder:text-[var(--color-ash)] focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)] focus:border-transparent"
                 />
             </div>
+            <div class="w-full sm:w-auto mt-6">
+                <label for="limit-input" class="block text-sm font-medium text-[var(--color-cyan)] mb-2">
+                    Max Records
+                </label>
+                <input
+                    type="number"
+                    id="limit-input"
+                    value="1000"
+                    min="1"
+                    max="10000"
+                    placeholder="1000"
+                    class="w-full px-4 bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg text-[var(--color-bone)] placeholder:text-[var(--color-ash)] focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)] focus:border-transparent"
+                />
+            </div>
             <button
                 id="fetch-button"
                 class="px-6 py-2 bg-[var(--color-cyan)] text-[var(--color-slate)] font-semibold rounded-lg hover:bg-[var(--color-cyan)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
@@ -209,11 +223,11 @@ const serializedActivityData = JSON.stringify(activityData || []);
             });
         }
 
-        async function fetchActivityData(user: string, onProgress?: (current: number, total: number) => void) {
-            console.log('fetchActivityData', user);
+        async function fetchActivityData(user: string, maxRecords: number, onProgress?: (current: number, total: number) => void) {
+            console.log('fetchActivityData', user, 'maxRecords:', maxRecords);
             const apiBaseUrl = 'https://data-api.polymarket.com';
             const limit = 100;
-            const MAX_RECORDS = 1000;
+            const MAX_RECORDS = maxRecords || 1000;
             let offset = 0;
             const allActivities: any[] = [];
             let pageCount = 0;
@@ -791,6 +805,7 @@ const serializedActivityData = JSON.stringify(activityData || []);
 
         // Event handlers
         const userInput = document.getElementById('user-input') as HTMLInputElement;
+        const limitInput = document.getElementById('limit-input') as HTMLInputElement;
         const fetchButton = document.getElementById('fetch-button') as HTMLButtonElement;
         const errorMessage = document.getElementById('error-message');
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -811,6 +826,10 @@ const serializedActivityData = JSON.stringify(activityData || []);
                 return;
             }
 
+            // Get limit from input, default to 1000 if invalid
+            const maxRecords = parseInt(limitInput?.value || '1000', 10);
+            const validMaxRecords = isNaN(maxRecords) || maxRecords < 1 ? 1000 : Math.min(maxRecords, 10000);
+
             // Show loading state
             fetchButton.disabled = true;
             if (loadingIndicator) loadingIndicator.classList.remove('hidden');
@@ -819,7 +838,7 @@ const serializedActivityData = JSON.stringify(activityData || []);
             if (errorMessage) errorMessage.classList.add('hidden');
 
             try {
-                const activityData = await fetchActivityData(user, (current, total) => {
+                const activityData = await fetchActivityData(user, validMaxRecords, (current, total) => {
                     // Update progress indicator
                     if (loadingText) {
                         loadingText.textContent = `Loading... (${current.toLocaleString()} records)`;
