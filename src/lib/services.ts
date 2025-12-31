@@ -1,45 +1,57 @@
 import type { Activity } from "../types/polymarket";
 
 export const getActivityByUser = async (user: string): Promise<{data: Activity[] | null, status: 'ok' | 'error', message?: string }> => {
-    // const response = await fetch(`${import.meta.env.POLYMARKET_DATA_API}/activity/${user}`);
-    // const activityData: Activity[] = await response.json();
-    // return activityData;
-
-
-    // 
-
-    // Extract query parameters from the request URL
-  const limit = '500';
-  const offset = '0';
-
   // Get API URL from environment variable or use default
   const apiBaseUrl = import.meta.env.POLYMARKET_DATA_API || 'https://data-api.polymarket.com';
-  const apiUrl = new URL(`${apiBaseUrl}/activity`);
-
-  // Add query parameters to the API URL
-  if (user) {
-    apiUrl.searchParams.set('user', user);
-  }
-
-  apiUrl.searchParams.set('limit', limit);
-  apiUrl.searchParams.set('offset', offset);
+  const limit = 500;
+  let offset = 0;
+  const allActivities: Activity[] = [];
 
   try {
-    // Fetch data from the Polymarket Data API
-    const response = await fetch(apiUrl.toString(), {
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
+    // Fetch all pages of data
+    while (true) {
+      const apiUrl = new URL(`${apiBaseUrl}/activity`);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return {data: null, status: 'error', message: `API request failed with status ${response.status}`};
+      // Add query parameters to the API URL
+      if (user) {
+        apiUrl.searchParams.set('user', user);
+      }
+
+      apiUrl.searchParams.set('limit', limit.toString());
+      apiUrl.searchParams.set('offset', offset.toString());
+
+      // Fetch data from the Polymarket Data API
+      const response = await fetch(apiUrl.toString(), {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return {data: null, status: 'error', message: `API request failed with status ${response.status}`};
+      }
+
+      const pageData: Activity[] = await response.json();
+
+      // If no data returned or less than limit, we've reached the end
+      if (!pageData || pageData.length === 0) {
+        break;
+      }
+
+      // Add this page's data to the collection
+      allActivities.push(...pageData);
+
+      // If we got less than the limit, we've reached the end
+      if (pageData.length < limit) {
+        break;
+      }
+
+      // Move to next page
+      offset += limit;
     }
 
-    const data = await response.json();
-
-    return {data, status: 'ok'};
+    return {data: allActivities, status: 'ok'};
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return { 

@@ -43,7 +43,13 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
         </div>
         <div id="error-message" class="mt-2 text-sm text-[var(--color-coral)] hidden"></div>
         <div id="loading-indicator" class="mt-2 text-sm text-[var(--color-cyan)] hidden">
-            Loading...
+            <span id="loading-text">Loading...</span>
+            <div id="loading-progress" class="mt-2 hidden">
+                <div class="w-full bg-[var(--color-mist)] rounded-full h-2">
+                    <div id="progress-bar" class="bg-[var(--color-cyan)] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <div id="progress-text" class="mt-1 text-xs text-[var(--color-ash)]"></div>
+            </div>
         </div>
     </div>
 
@@ -197,25 +203,110 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
             });
         }
 
-        async function fetchActivityData(user: string) {
+        async function fetchActivityData(user: string, onProgress?: (current: number, total: number) => void) {
             console.log('fetchActivityData', user);
             const apiBaseUrl = 'https://data-api.polymarket.com';
-            const apiUrl = new URL(`${apiBaseUrl}/activity`);
-            apiUrl.searchParams.set('user', user);
-            apiUrl.searchParams.set('limit', '500');
-            apiUrl.searchParams.set('offset', '0');
+            const limit = 500;
+            let offset = 0;
+            const allActivities: any[] = [];
+            let pageCount = 0;
+            let totalEstimated = 0;
 
-            const response = await fetch(apiUrl.toString(), {
-                headers: {
-                    'Accept': 'application/json',
-                },
-            });
+            try {
+                // First, fetch the first page to estimate total
+                const firstPageUrl = new URL(`${apiBaseUrl}/activity`);
+                firstPageUrl.searchParams.set('user', user);
+                firstPageUrl.searchParams.set('limit', limit.toString());
+                firstPageUrl.searchParams.set('offset', '0');
 
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
+                const firstResponse = await fetch(firstPageUrl.toString(), {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (!firstResponse.ok) {
+                    throw new Error(`API request failed with status ${firstResponse.status}`);
+                }
+
+                const firstPageData = await firstResponse.json();
+                
+                if (!firstPageData || firstPageData.length === 0) {
+                    return [];
+                }
+
+                allActivities.push(...firstPageData);
+                pageCount = 1;
+                
+                // If we got a full page, estimate there might be more
+                if (firstPageData.length === limit) {
+                    totalEstimated = limit * 2; // Start with estimate of 2 pages
+                    if (onProgress) {
+                        onProgress(allActivities.length, totalEstimated);
+                    }
+                } else {
+                    // Got less than limit, we're done
+                    return allActivities;
+                }
+
+                // Continue fetching remaining pages
+                while (true) {
+                    offset += limit;
+                    const apiUrl = new URL(`${apiBaseUrl}/activity`);
+                    apiUrl.searchParams.set('user', user);
+                    apiUrl.searchParams.set('limit', limit.toString());
+                    apiUrl.searchParams.set('offset', offset.toString());
+
+                    const response = await fetch(apiUrl.toString(), {
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+
+                    const pageData = await response.json();
+
+                    // If no data returned, we've reached the end
+                    if (!pageData || pageData.length === 0) {
+                        break;
+                    }
+
+                    // Add this page's data to the collection
+                    allActivities.push(...pageData);
+                    pageCount++;
+
+                    // Update progress
+                    if (pageData.length === limit) {
+                        // Might be more pages, update estimate
+                        totalEstimated = Math.max(totalEstimated, allActivities.length + limit);
+                    } else {
+                        // Got less than limit, this is the last page
+                        totalEstimated = allActivities.length;
+                    }
+
+                    if (onProgress) {
+                        onProgress(allActivities.length, totalEstimated);
+                    }
+
+                    // If we got less than the limit, we've reached the end
+                    if (pageData.length < limit) {
+                        break;
+                    }
+                }
+
+                // Final progress update
+                if (onProgress) {
+                    onProgress(allActivities.length, allActivities.length);
+                }
+
+                return allActivities;
+            } catch (error) {
+                console.error('Error fetching activity data:', error);
+                throw error;
             }
-
-            return await response.json();
         }
 
         function updateSummary(metrics, hasData) {
@@ -469,6 +560,10 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
         const fetchButton = document.getElementById('fetch-button') as HTMLButtonElement;
         const errorMessage = document.getElementById('error-message');
         const loadingIndicator = document.getElementById('loading-indicator');
+        const loadingText = document.getElementById('loading-text');
+        const loadingProgress = document.getElementById('loading-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
 
         fetchButton?.addEventListener('click', async () => {
             // polymarket adds timestamp to the user address when copied from the website
@@ -485,13 +580,31 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
             // Show loading state
             fetchButton.disabled = true;
             if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+            if (loadingText) loadingText.textContent = 'Loading...';
+            if (loadingProgress) loadingProgress.classList.add('hidden');
             if (errorMessage) errorMessage.classList.add('hidden');
 
             try {
-                const activityData = await fetchActivityData(user);
+                const activityData = await fetchActivityData(user, (current, total) => {
+                    // Update progress indicator
+                    if (loadingText) {
+                        loadingText.textContent = `Loading... (${current.toLocaleString()} records)`;
+                    }
+                    if (loadingProgress && progressBar && progressText) {
+                        loadingProgress.classList.remove('hidden');
+                        const percentage = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+                        progressBar.style.width = `${percentage}%`;
+                        progressText.textContent = `${current.toLocaleString()} / ${total > current ? `~${total.toLocaleString()}` : current.toLocaleString()} records`;
+                    }
+                });
                 
                 if (!activityData || activityData.length === 0) {
                     throw new Error('No activity data found for this user');
+                }
+
+                // Final loading message
+                if (loadingText) {
+                    loadingText.textContent = `Processing ${activityData.length.toLocaleString()} records...`;
                 }
 
                 const metrics = calculateMetrics(activityData || []);
@@ -501,6 +614,7 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
 
                 // Hide loading, show success
                 if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                if (loadingProgress) loadingProgress.classList.add('hidden');
             } catch (error) {
                 console.error('Error fetching activity:', error);
                 if (errorMessage) {
@@ -508,6 +622,7 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                     errorMessage.classList.remove('hidden');
                 }
                 if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                if (loadingProgress) loadingProgress.classList.add('hidden');
             } finally {
                 fetchButton.disabled = false;
             }
