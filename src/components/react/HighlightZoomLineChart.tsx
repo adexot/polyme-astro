@@ -235,7 +235,7 @@ export const HighlightZoomLineChart: React.FC<HighlightZoomLineChartProps> = ({
             top: 20,
             right: 30,
             left: 20,
-            bottom: 80, // Extra space for brush
+            bottom: 120, // Extra space for x-axis labels (80px) + brush (40px)
           }}
           onMouseLeave={handleMouseLeave}
         >
