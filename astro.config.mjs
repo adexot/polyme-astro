@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import react from '@astrojs/react';
 
 import cloudflare from '@astrojs/cloudflare';
 
@@ -16,7 +17,7 @@ export default defineConfig({
   // Only use base path in production (GitHub Pages)
   base: '/',
 
-  integrations: [sitemap()],
+  integrations: [react(), sitemap()],
 
   markdown: {
     shikiConfig: {

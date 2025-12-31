@@ -1,5 +1,6 @@
 ---
 import type { Activity } from "../types/polymarket";
+import { BarChart } from "../components/react/BarChart";
 
 export interface Props {
     activityData: Activity[] | null;
@@ -90,77 +91,105 @@ if (activityData && activityData.length > 0) {
     });
 }
 
-// Convert to array and sort by date (most recent first)
+// Convert to array and sort by date (most recent first for display)
 const bucketEntries = Array.from(buckets.values()).sort((a, b) => {
     return b.startDate.getTime() - a.startDate.getTime();
 });
+
+// Prepare chart data (sorted chronologically, oldest first for chart)
+const chartData = bucketEntries
+    .map((bucket) => {
+        const metrics = calculateBucketMetrics(bucket.activities);
+        return {
+            name: bucket.key,
+            difference: metrics.difference,
+        };
+    })
+    .reverse(); // Reverse to show oldest to newest
 ---
 
 {activityData && activityData.length > 0 && bucketEntries.length > 0 ? (
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {bucketEntries.map((bucket) => {
-            const metrics = calculateBucketMetrics(bucket.activities);
-            return (
-                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-4">
-                    <div class="text-sm font-semibold text-[var(--color-cyan)] mb-2 border-b border-[var(--color-mist)]">
-                        {bucket.key}
-                    </div>
-                    
-                    <div class="space-y-1">
-                        {/* BUY Metrics */}
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
-                                BUY
-                            </span>
-                            <div class="text-right">
-                                <div class="text-sm font-semibold text-[var(--color-bone)]">
-                                    {metrics.buyCount} trades
-                                </div>
-                                <div class="text-sm text-[var(--color-coral)]">
-                                    ${metrics.buyTotal.toLocaleString()}
-                                </div>
-                            </div>
+    <div class="space-y-6">
+        {/* Bar Chart */}
+        {chartData.length > 0 && (
+            <div id="bar-chart-container">
+                <BarChart
+                    client:load
+                    data={chartData}
+                    title="Activity Difference Over Time"
+                    height={400}
+                    showLegend={false}
+                    showGrid={true}
+                />
+            </div>
+        )}
+
+        {/* Activity Cards Grid */}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {bucketEntries.map((bucket) => {
+                const metrics = calculateBucketMetrics(bucket.activities);
+                return (
+                    <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-4">
+                        <div class="text-sm font-semibold text-[var(--color-cyan)] mb-2 border-b border-[var(--color-mist)]">
+                            {bucket.key}
                         </div>
                         
-                        {/* REDEEM Metrics */}
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
-                                REDEEM
-                            </span>
-                            <div class="text-right">
-                                <div class="text-sm font-semibold text-[var(--color-bone)]">
-                                    {metrics.redeemCount} trades
-                                </div>
-                                <div class="text-sm text-[var(--color-cyan)]">
-                                    ${metrics.redeemTotal.toLocaleString()}
+                        <div class="space-y-1">
+                            {/* BUY Metrics */}
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
+                                    BUY
+                                </span>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-[var(--color-bone)]">
+                                        {metrics.buyCount} trades
+                                    </div>
+                                    <div class="text-sm text-[var(--color-coral)]">
+                                        ${metrics.buyTotal.toLocaleString()}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        {/* Difference */}
-                        <div class="flex justify-between items-center pt-2 border-t border-[var(--color-mist)]">
-                            <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
-                                Difference
-                            </span>
-                            <div class="text-right">
-                                <div class="text-sm font-semibold text-[var(--color-bone)]">
-                                    {metrics.buyCount - metrics.redeemCount}
+                            
+                            {/* REDEEM Metrics */}
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
+                                    REDEEM
+                                </span>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-[var(--color-bone)]">
+                                        {metrics.redeemCount} trades
+                                    </div>
+                                    <div class="text-sm text-[var(--color-cyan)]">
+                                        ${metrics.redeemTotal.toLocaleString()}
+                                    </div>
                                 </div>
-                                <div
-                                    class={`text-sm font-semibold ${
-                                        metrics.difference >= 0
-                                            ? "text-green-400"
-                                            : "text-red-400"
-                                    }`}
-                                >
-                                    ${metrics.difference.toLocaleString()}
+                            </div>
+                            
+                            {/* Difference */}
+                            <div class="flex justify-between items-center pt-2 border-t border-[var(--color-mist)]">
+                                <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">
+                                    Difference
+                                </span>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-[var(--color-bone)]">
+                                        {metrics.buyCount - metrics.redeemCount}
+                                    </div>
+                                    <div
+                                        class={`text-sm font-semibold ${
+                                            metrics.difference >= 0
+                                                ? "text-green-400"
+                                                : "text-red-400"
+                                        }`}
+                                    >
+                                        ${metrics.difference.toLocaleString()}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            );
-        })}
+                );
+            })}
+        </div>
     </div>
 ) : (
     <div class="text-center text-[var(--color-ash)] py-8">

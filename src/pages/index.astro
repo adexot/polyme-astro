@@ -381,6 +381,20 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                 return b.startDate.getTime() - a.startDate.getTime();
             });
 
+            // Prepare chart data (sorted chronologically, oldest first for chart)
+            const chartData = bucketEntries
+                .map((bucket) => {
+                    const metrics = calculateBucketMetrics(bucket.activities);
+                    return {
+                        name: bucket.key,
+                        difference: metrics.difference,
+                    };
+                })
+                .reverse(); // Reverse to show oldest to newest
+
+            // Update chart data via custom event
+            window.dispatchEvent(new CustomEvent('chart-data-update', { detail: chartData }));
+
             // Generate HTML for bucket cards
             const bucketsHTML = bucketEntries.map((bucket) => {
                 const metrics = calculateBucketMetrics(bucket.activities);
@@ -416,7 +430,38 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
                 `;
             }).join('');
 
-            analyzeSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${bucketsHTML}</div>`;
+            // Update only the cards grid, preserve chart container
+            const cardsContainer = analyzeSection.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
+            if (cardsContainer) {
+                cardsContainer.innerHTML = bucketsHTML;
+            } else {
+                // If cards container doesn't exist, try to find or create the structure
+                let spaceY6 = analyzeSection.querySelector('.space-y-6');
+                if (!spaceY6) {
+                    // Create the space-y-6 container if it doesn't exist
+                    spaceY6 = document.createElement('div');
+                    spaceY6.className = 'space-y-6';
+                    analyzeSection.innerHTML = '';
+                    analyzeSection.appendChild(spaceY6);
+                }
+                
+                // Ensure chart container exists
+                let chartContainer = spaceY6.querySelector('#bar-chart-container');
+                if (!chartContainer) {
+                    chartContainer = document.createElement('div');
+                    chartContainer.id = 'bar-chart-container';
+                    spaceY6.appendChild(chartContainer);
+                }
+                
+                // Create or update cards container
+                let cardsDiv = spaceY6.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
+                if (!cardsDiv) {
+                    cardsDiv = document.createElement('div');
+                    cardsDiv.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6';
+                    spaceY6.appendChild(cardsDiv);
+                }
+                cardsDiv.innerHTML = bucketsHTML;
+            }
         }
 
         // Event handlers

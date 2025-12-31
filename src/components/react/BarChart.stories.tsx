@@ -1,0 +1,195 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { BarChart, type BarChartData } from './BarChart';
+
+const meta: Meta<typeof BarChart> = {
+  title: 'Components/BarChart',
+  component: BarChart,
+  parameters: {
+    layout: 'padded',
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    height: {
+      control: { type: 'number', min: 200, max: 800, step: 50 },
+    },
+    showLegend: {
+      control: 'boolean',
+    },
+    showGrid: {
+      control: 'boolean',
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof BarChart>;
+
+// Sample data with mixed positive and negative differences
+const sampleData: BarChartData[] = [
+  { name: 'Jan 1-2', difference: -270.25 },
+  { name: 'Jan 2-3', difference: 450.00 },
+  { name: 'Jan 3-4', difference: 0 },
+  { name: 'Jan 4-5', difference: -500.25 },
+  { name: 'Jan 5-6', difference: 400.00 },
+];
+
+const largeData: BarChartData[] = [
+  { name: 'Dec 1-2', difference: -27000 },
+  { name: 'Dec 2-3', difference: -30000 },
+  { name: 'Dec 3-4', difference: 12000 },
+  { name: 'Dec 4-5', difference: -50000 },
+  { name: 'Dec 5-6', difference: 40000 },
+  { name: 'Dec 6-7', difference: -20000 },
+  { name: 'Dec 7-8', difference: 15000 },
+];
+
+const allPositive: BarChartData[] = [
+  { name: 'Day 1', difference: 200 },
+  { name: 'Day 2', difference: 300 },
+  { name: 'Day 3', difference: 150 },
+  { name: 'Day 4', difference: 450 },
+];
+
+const allNegative: BarChartData[] = [
+  { name: 'Day 1', difference: -200 },
+  { name: 'Day 2', difference: -300 },
+  { name: 'Day 3', difference: -150 },
+  { name: 'Day 4', difference: -450 },
+];
+
+const weeklyData: BarChartData[] = [
+  { name: 'Week 1', difference: -500 },
+  { name: 'Week 2', difference: -500 },
+  { name: 'Week 3', difference: 500 },
+  { name: 'Week 4', difference: -500 },
+];
+
+export const Default: Story = {
+  args: {
+    data: sampleData,
+    title: 'Difference Over Time',
+    height: 350,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const WithoutTitle: Story = {
+  args: {
+    data: sampleData,
+    height: 350,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const LargeNumbers: Story = {
+  args: {
+    data: largeData,
+    title: 'Monthly Difference (Large Values)',
+    height: 400,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const WeeklyView: Story = {
+  args: {
+    data: weeklyData,
+    title: 'Weekly Difference Summary',
+    height: 350,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const AllPositive: Story = {
+  args: {
+    data: allPositive,
+    title: 'All Positive Differences',
+    height: 350,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const AllNegative: Story = {
+  args: {
+    data: allNegative,
+    title: 'All Negative Differences',
+    height: 350,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const NoLegend: Story = {
+  args: {
+    data: sampleData,
+    title: 'Difference Chart (No Legend)',
+    height: 350,
+    showLegend: false,
+    showGrid: true,
+  },
+};
+
+export const NoGrid: Story = {
+  args: {
+    data: sampleData,
+    title: 'Difference Chart (No Grid)',
+    height: 350,
+    showLegend: true,
+    showGrid: false,
+  },
+};
+
+export const TallChart: Story = {
+  args: {
+    data: sampleData,
+    title: 'Tall Difference Chart',
+    height: 600,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const ShortChart: Story = {
+  args: {
+    data: sampleData,
+    title: 'Compact Difference Chart',
+    height: 250,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const ManyDataPoints: Story = {
+  args: {
+    data: [
+      { name: 'Day 1', difference: -100 },
+      { name: 'Day 2', difference: 50 },
+      { name: 'Day 3', difference: -50 },
+      { name: 'Day 4', difference: 100 },
+      { name: 'Day 5', difference: -75 },
+      { name: 'Day 6', difference: 150 },
+      { name: 'Day 7', difference: -200 },
+      { name: 'Day 8', difference: 75 },
+      { name: 'Day 9', difference: -125 },
+      { name: 'Day 10', difference: 250 },
+    ],
+    title: '10 Days Difference',
+    height: 400,
+    showLegend: true,
+    showGrid: true,
+  },
+};
+
+export const SingleDataPoint: Story = {
+  args: {
+    data: [{ name: 'Jan 1-2', difference: -270.25 }],
+    title: 'Single Day Difference',
+    height: 350,
+    showLegend: true,
+    showGrid: true,
+  },
+};
