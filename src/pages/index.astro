@@ -206,7 +206,7 @@ const volumeMetrics = volumeMetricsCalc(activityData || []);
         async function fetchActivityData(user: string, onProgress?: (current: number, total: number) => void) {
             console.log('fetchActivityData', user);
             const apiBaseUrl = 'https://data-api.polymarket.com';
-            const limit = 500;
+            const limit = 100;
             let offset = 0;
             const allActivities: any[] = [];
             let pageCount = 0;

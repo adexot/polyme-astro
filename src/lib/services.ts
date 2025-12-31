@@ -3,7 +3,7 @@ import type { Activity } from "../types/polymarket";
 export const getActivityByUser = async (user: string): Promise<{data: Activity[] | null, status: 'ok' | 'error', message?: string }> => {
   // Get API URL from environment variable or use default
   const apiBaseUrl = import.meta.env.POLYMARKET_DATA_API || 'https://data-api.polymarket.com';
-  const limit = 500;
+  const limit = 100;
   let offset = 0;
   const allActivities: Activity[] = [];
 
