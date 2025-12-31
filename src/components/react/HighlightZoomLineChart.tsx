@@ -1,8 +1,8 @@
 // @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import {
-  BarChart as RechartsBarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -10,7 +10,11 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  Brush,
+  Area,
+  AreaChart,
 } from 'recharts';
+import type { BarChartData } from './BarChart';
 
 // Color constants matching the project theme
 const colors = {
@@ -23,18 +27,7 @@ const colors = {
   cyan: '#22d3ee',       // Accent color
 };
 
-export interface BarChartData {
-  /**
-   * Category name (e.g., date range)
-   */
-  name: string;
-  /**
-   * Difference amount (can be positive or negative)
-   */
-  difference: number;
-}
-
-export interface BarChartProps {
+export interface HighlightZoomLineChartProps {
   /**
    * Chart data
    */
@@ -58,18 +51,20 @@ export interface BarChartProps {
 }
 
 /**
- * A positive/negative bar chart component using Recharts
- * Shows difference values with positive bars above baseline and negative bars below
+ * A highlight and zoom line chart component using Recharts
+ * Shows difference values as a line chart with highlight and zoom capabilities
+ * Positive values above baseline, negative values below
  */
-export const BarChart: React.FC<BarChartProps> = ({
+export const HighlightZoomLineChart: React.FC<HighlightZoomLineChartProps> = ({
   data,
   title,
-  height = 350,
+  height = 400,
   showLegend = true,
   showGrid = true,
 }) => {
   // State to track data changes
   const [chartData, setChartData] = useState(data);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   // Update chart data when props change
   useEffect(() => {
@@ -91,16 +86,10 @@ export const BarChart: React.FC<BarChartProps> = ({
     };
   }, []);
 
-  // Transform data to separate positive and negative values
-  const transformedData = chartData.map((item) => {
-    return item;
-  });
-
   // Custom tooltip to match project styling
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      // Find the data point to get the original difference value
-      const dataPoint = transformedData.find((d: any) => d.name === label);
+      const dataPoint = chartData.find((d: any) => d.name === label);
       const difference = dataPoint?.difference ?? 0;
 
       return (
@@ -195,6 +184,34 @@ export const BarChart: React.FC<BarChartProps> = ({
     );
   };
 
+  // Custom dot component for highlighting active point
+  const CustomDot = (props: any) => {
+    const { cx, cy, payload, index } = props;
+    const isActive = activeIndex === index;
+    
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={isActive ? 6 : 4}
+        fill={payload.difference >= 0 ? colors.positive : colors.negative}
+        stroke={isActive ? colors.cyan : 'none'}
+        strokeWidth={isActive ? 2 : 0}
+        style={{ cursor: 'pointer' }}
+      />
+    );
+  };
+
+  // Handle mouse enter on line
+  const handleMouseEnter = (data: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  // Handle mouse leave
+  const handleMouseLeave = () => {
+    setActiveIndex(null);
+  };
+
   return (
     <div 
       className="rounded-lg p-6"
@@ -212,14 +229,15 @@ export const BarChart: React.FC<BarChartProps> = ({
         </h3>
       )}
       <ResponsiveContainer width="100%" height={height}>
-        <RechartsBarChart
-          data={transformedData}
+        <AreaChart
+          data={chartData}
           margin={{
             top: 20,
             right: 30,
             left: 20,
-            bottom: 5,
+            bottom: 80, // Extra space for brush
           }}
+          onMouseLeave={handleMouseLeave}
         >
           {showGrid && (
             <CartesianGrid
@@ -244,17 +262,37 @@ export const BarChart: React.FC<BarChartProps> = ({
           {showLegend && (
             <Legend
               wrapperStyle={{ color: colors.bone }}
-              iconType="rect"
+              iconType="line"
             />
           )}
-          <Bar
+          {/* Area for positive values */}
+          <Area
+            type="monotone"
             dataKey="difference"
-            name="Difference"
+            stroke={colors.cyan}
             fill={colors.cyan}
-            radius={[4, 4, 0, 0]}
+            fillOpacity={0.3}
+            strokeWidth={2}
+            dot={<CustomDot />}
+            activeDot={{ r: 8, stroke: colors.cyan, strokeWidth: 2 }}
+            onMouseEnter={handleMouseEnter}
           />
-        </RechartsBarChart>
+          <Brush
+            dataKey="name"
+            height={30}
+            stroke={colors.mist}
+            fill={colors.slate}
+            tickFormatter={(value) => {
+              // Truncate long labels in brush
+              if (typeof value === 'string' && value.length > 10) {
+                return value.substring(0, 10) + '...';
+              }
+              return value;
+            }}
+          />
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
 };
+

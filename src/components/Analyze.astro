@@ -1,6 +1,8 @@
 ---
 import type { Activity } from "../types/polymarket";
 import { BarChart } from "../components/react/BarChart";
+import { BrushBarChart } from "../components/react/BrushBarChart";
+import { HighlightZoomLineChart } from "../components/react/HighlightZoomLineChart";
 
 export interface Props {
     activityData: Activity[] | null;
@@ -110,17 +112,67 @@ const chartData = bucketEntries
 
 {activityData && activityData.length > 0 && bucketEntries.length > 0 ? (
     <div class="space-y-6">
-        {/* Bar Chart */}
+        {/* Chart Type Selector */}
+        {chartData.length > 0 && (
+            <div class="flex flex-wrap gap-2 mb-4">
+                <label class="text-sm text-[var(--color-ash)] mr-2 self-center">Chart Type:</label>
+                <button
+                    id="chart-type-bar"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-cyan)] text-[var(--color-slate)] hover:opacity-90 chart-button-active"
+                    data-chart-type="bar"
+                >
+                    Bar Chart
+                </button>
+                <button
+                    id="chart-type-brush"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
+                    data-chart-type="brush"
+                >
+                    Brush Bar Chart
+                </button>
+                <button
+                    id="chart-type-line"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
+                    data-chart-type="line"
+                >
+                    Highlight & Zoom Line
+                </button>
+            </div>
+        )}
+
+        {/* Chart Container */}
         {chartData.length > 0 && (
             <div id="bar-chart-container">
-                <BarChart
-                    client:load
-                    data={chartData}
-                    title="Activity Difference Over Time"
-                    height={400}
-                    showLegend={false}
-                    showGrid={true}
-                />
+                <div id="chart-bar" class="chart-view chart-active">
+                    <BarChart
+                        client:load
+                        data={chartData}
+                        title="Activity Difference Over Time"
+                        height={400}
+                        showLegend={false}
+                        showGrid={true}
+                    />
+                </div>
+                <div id="chart-brush" class="chart-view" style="display: none;">
+                    <BrushBarChart
+                        client:load
+                        data={chartData}
+                        title="Activity Difference Over Time"
+                        height={400}
+                        showLegend={false}
+                        showGrid={true}
+                    />
+                </div>
+                <div id="chart-line" class="chart-view" style="display: none;">
+                    <HighlightZoomLineChart
+                        client:load
+                        data={chartData}
+                        title="Activity Difference Over Time"
+                        height={400}
+                        showLegend={false}
+                        showGrid={true}
+                    />
+                </div>
             </div>
         )}
 
@@ -196,3 +248,98 @@ const chartData = bucketEntries
         No activity data available
     </div>
 )}
+
+<style>
+    .chart-view {
+        transition: all 0.3s ease;
+        border-radius: 0.5rem;
+    }
+    
+    .chart-view.chart-active {
+        outline: 2px solid var(--color-cyan);
+        outline-offset: 4px;
+        box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+    }
+    
+    .chart-view:not(.chart-active) {
+        opacity: 0.7;
+    }
+    
+    .chart-button-active {
+        background-color: var(--color-cyan) !important;
+        color: var(--color-slate) !important;
+    }
+    
+    [data-chart-type]:not(.chart-button-active) {
+        background-color: var(--color-mist) !important; 
+        color: var(--color-bone) !important;
+    }
+</style>
+
+<script is:inline>
+    // Chart type switching functionality
+    function initChartTypeSwitcher() {
+        const chartButtons = document.querySelectorAll('[data-chart-type]');
+        const chartViews = document.querySelectorAll('.chart-view');
+        
+        function switchChart(type) {
+            // Hide all charts and remove active class
+            chartViews.forEach(view => {
+                if (view instanceof HTMLElement) {
+                    view.style.display = 'none';
+                    view.classList.remove('chart-active');
+                }
+            });
+            
+            // Show selected chart and add active class
+            const selectedChart = document.getElementById(`chart-${type}`);
+            if (selectedChart) {
+                selectedChart.style.display = 'block';
+                selectedChart.classList.add('chart-active');
+            }
+            
+            // Update button styles
+            chartButtons.forEach(btn => {
+                const btnType = btn.getAttribute('data-chart-type');
+                if (btnType === type) {
+                    btn.classList.add('chart-button-active');
+                    btn.classList.remove('bg-[var(--color-mist)]', 'text-[var(--color-bone)]');
+                    btn.classList.add('text-[var(--color-slate)]');
+                } else {
+                    btn.classList.remove('chart-button-active');
+                    btn.classList.remove('bg-[var(--color-cyan)]', 'text-[var(--color-slate)]');
+                    btn.classList.add('bg-[var(--color-mist)]', 'text-[var(--color-bone)]');
+                }
+            });
+        }
+        
+        // Add click handlers
+        chartButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-chart-type');
+                if (type) {
+                    switchChart(type);
+                }
+            });
+        });
+    }
+    
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChartTypeSwitcher);
+    } else {
+        initChartTypeSwitcher();
+    }
+    
+    // Re-initialize when analyze section is updated
+    const observer = new MutationObserver(() => {
+        if (document.querySelector('[data-chart-type]')) {
+            initChartTypeSwitcher();
+        }
+    });
+    
+    const analyzeSection = document.getElementById('analyze-section');
+    if (analyzeSection) {
+        observer.observe(analyzeSection, { childList: true, subtree: true });
+    }
+</script>

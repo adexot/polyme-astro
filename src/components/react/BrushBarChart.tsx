@@ -10,7 +10,9 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  Brush,
 } from 'recharts';
+import type { BarChartData } from './BarChart';
 
 // Color constants matching the project theme
 const colors = {
@@ -23,18 +25,7 @@ const colors = {
   cyan: '#22d3ee',       // Accent color
 };
 
-export interface BarChartData {
-  /**
-   * Category name (e.g., date range)
-   */
-  name: string;
-  /**
-   * Difference amount (can be positive or negative)
-   */
-  difference: number;
-}
-
-export interface BarChartProps {
+export interface BrushBarChartProps {
   /**
    * Chart data
    */
@@ -58,13 +49,14 @@ export interface BarChartProps {
 }
 
 /**
- * A positive/negative bar chart component using Recharts
+ * A brush bar chart component using Recharts
  * Shows difference values with positive bars above baseline and negative bars below
+ * Includes a brush/zoom feature for exploring data ranges
  */
-export const BarChart: React.FC<BarChartProps> = ({
+export const BrushBarChart: React.FC<BrushBarChartProps> = ({
   data,
   title,
-  height = 350,
+  height = 400,
   showLegend = true,
   showGrid = true,
 }) => {
@@ -91,16 +83,10 @@ export const BarChart: React.FC<BarChartProps> = ({
     };
   }, []);
 
-  // Transform data to separate positive and negative values
-  const transformedData = chartData.map((item) => {
-    return item;
-  });
-
   // Custom tooltip to match project styling
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      // Find the data point to get the original difference value
-      const dataPoint = transformedData.find((d: any) => d.name === label);
+      const dataPoint = chartData.find((d: any) => d.name === label);
       const difference = dataPoint?.difference ?? 0;
 
       return (
@@ -213,12 +199,12 @@ export const BarChart: React.FC<BarChartProps> = ({
       )}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsBarChart
-          data={transformedData}
+          data={chartData}
           margin={{
             top: 20,
             right: 30,
             left: 20,
-            bottom: 5,
+            bottom: 80, // Extra space for brush
           }}
         >
           {showGrid && (
@@ -253,8 +239,22 @@ export const BarChart: React.FC<BarChartProps> = ({
             fill={colors.cyan}
             radius={[4, 4, 0, 0]}
           />
+          <Brush
+            dataKey="name"
+            height={30}
+            stroke={colors.mist}
+            fill={colors.slate}
+            tickFormatter={(value) => {
+              // Truncate long labels in brush
+              if (typeof value === 'string' && value.length > 10) {
+                return value.substring(0, 10) + '...';
+              }
+              return value;
+            }}
+          />
         </RechartsBarChart>
       </ResponsiveContainer>
     </div>
   );
 };
+
