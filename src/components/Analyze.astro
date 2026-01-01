@@ -118,7 +118,7 @@ const chartData = bucketEntries
                 <label class="text-sm text-[var(--color-ash)] mr-2 self-center">Chart Type:</label>
                 <button
                     id="chart-type-bar"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-cyan)] text-[var(--color-slate)] hover:opacity-90 chart-button-active"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
                     data-chart-type="bar"
                 >
                     Bar Chart
@@ -132,7 +132,7 @@ const chartData = bucketEntries
                 </button>
                 <button
                     id="chart-type-line"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-cyan)] text-[var(--color-slate)] hover:opacity-90 chart-button-active"
                     data-chart-type="line"
                 >
                     Highlight & Zoom Line
@@ -143,7 +143,7 @@ const chartData = bucketEntries
         {/* Chart Container */}
         {chartData.length > 0 && (
             <div id="bar-chart-container">
-                <div id="chart-bar" class="chart-view chart-active">
+                <div id="chart-bar" class="chart-view" style="display: none;">
                     <BarChart
                         client:load
                         data={chartData}
@@ -163,7 +163,7 @@ const chartData = bucketEntries
                         showGrid={true}
                     />
                 </div>
-                <div id="chart-line" class="chart-view" style="display: none;">
+                <div id="chart-line" class="chart-view chart-active">
                     <HighlightZoomLineChart
                         client:load
                         data={chartData}
@@ -312,6 +312,9 @@ const chartData = bucketEntries
                 }
             });
         }
+        
+        // Initialize with line chart as default
+        switchChart('line');
         
         // Add click handlers
         chartButtons.forEach(btn => {
