@@ -110,73 +110,69 @@ const chartData = bucketEntries
     .reverse(); // Reverse to show oldest to newest
 ---
 
-{activityData && activityData.length > 0 && bucketEntries.length > 0 ? (
-    <div class="space-y-6">
-        {/* Chart Type Selector */}
-        {chartData.length > 0 && (
-            <div class="flex flex-wrap gap-2 mb-4">
-                <label class="text-sm text-[var(--color-ash)] mr-2 self-center">Chart Type:</label>
-                <button
-                    id="chart-type-bar"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
-                    data-chart-type="bar"
-                >
-                    Bar Chart
-                </button>
-                <button
-                    id="chart-type-brush"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
-                    data-chart-type="brush"
-                >
-                    Brush Bar Chart
-                </button>
-                <button
-                    id="chart-type-line"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-cyan)] text-[var(--color-slate)] hover:opacity-90 chart-button-active"
-                    data-chart-type="line"
-                >
-                    Highlight & Zoom Line
-                </button>
-            </div>
-        )}
+<div class="space-y-6">
+    {/* Chart Type Selector - Always render, hide if no data */}
+    <div class="flex flex-wrap gap-2 mb-4" style={chartData.length === 0 ? "display: none;" : ""}>
+        <label class="text-sm text-[var(--color-ash)] mr-2 self-center">Chart Type:</label>
+        <button
+            id="chart-type-bar"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
+            data-chart-type="bar"
+        >
+            Bar Chart
+        </button>
+        <button
+            id="chart-type-brush"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-mist)] text-[var(--color-bone)] hover:bg-[var(--color-ash)]"
+            data-chart-type="brush"
+        >
+            Brush Bar Chart
+        </button>
+        <button
+            id="chart-type-line"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--color-cyan)] text-[var(--color-slate)] hover:opacity-90 chart-button-active"
+            data-chart-type="line"
+        >
+            Highlight & Zoom Line
+        </button>
+    </div>
 
-        {/* Chart Container */}
-        {chartData.length > 0 && (
-            <div id="bar-chart-container">
-                <div id="chart-bar" class="chart-view" style="display: none;">
-                    <BarChart
-                        client:load
-                        data={chartData}
-                        title="Activity Difference Over Time"
-                        height={400}
-                        showLegend={false}
-                        showGrid={true}
-                    />
-                </div>
-                <div id="chart-brush" class="chart-view" style="display: none;">
-                    <BrushBarChart
-                        client:load
-                        data={chartData}
-                        title="Activity Difference Over Time"
-                        height={400}
-                        showLegend={false}
-                        showGrid={true}
-                    />
-                </div>
-                <div id="chart-line" class="chart-view chart-active">
-                    <HighlightZoomLineChart
-                        client:load
-                        data={chartData}
-                        title="Activity Difference Over Time"
-                        height={400}
-                        showLegend={false}
-                        showGrid={true}
-                    />
-                </div>
-            </div>
-        )}
+    {/* Chart Container - Always render React components so they can listen for updates */}
+    <div id="bar-chart-container" style={chartData.length === 0 ? "display: none;" : ""}>
+        <div id="chart-bar" class="chart-view" style="display: none;">
+            <BarChart
+                client:load
+                data={chartData}
+                title="Activity Difference Over Time"
+                height={400}
+                showLegend={false}
+                showGrid={true}
+            />
+        </div>
+        <div id="chart-brush" class="chart-view" style="display: none;">
+            <BrushBarChart
+                client:load
+                data={chartData}
+                title="Activity Difference Over Time"
+                height={400}
+                showLegend={false}
+                showGrid={true}
+            />
+        </div>
+        <div id="chart-line" class="chart-view chart-active">
+            <HighlightZoomLineChart
+                client:load
+                data={chartData}
+                title="Activity Difference Over Time"
+                height={400}
+                showLegend={false}
+                showGrid={true}
+            />
+        </div>
+    </div>
 
-        {/* Activity Cards Grid */}
+    {/* Activity Cards Grid */}
+    {activityData && activityData.length > 0 && bucketEntries.length > 0 ? (
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
             {bucketEntries.map((bucket) => {
                 const metrics = calculateBucketMetrics(bucket.activities);
@@ -242,12 +238,12 @@ const chartData = bucketEntries
                 );
             })}
         </div>
-    </div>
-) : (
-    <div class="text-center text-[var(--color-ash)] py-8">
-        No activity data available
-    </div>
-)}
+    ) : (
+        <div class="text-center text-[var(--color-ash)] py-8">
+            No activity data available
+        </div>
+    )}
+</div>
 
 <style>
     .chart-view {

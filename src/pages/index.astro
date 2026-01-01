@@ -144,7 +144,7 @@ const serializedInitialUser = JSON.stringify(initialUser);
 
     <div class="text-lg font-bold text-cyan-400 my-2">Analyze</div>
     <div id="analyze-section">
-        {isActivityDataValid && <Analyze activityData={activityData} />}
+        <Analyze activityData={activityData} />
     </div>
 
     
@@ -784,38 +784,61 @@ const serializedInitialUser = JSON.stringify(initialUser);
                 `;
             }).join('');
 
+            // Find the space-y-6 container (should always exist now)
+            const spaceY6 = analyzeSection.querySelector('.space-y-6');
+            if (!spaceY6) {
+                console.error('Analyze section structure not found');
+                return;
+            }
+            
+            // Show chart container and selector if they were hidden
+            const chartContainer = spaceY6.querySelector('#bar-chart-container') as HTMLElement;
+            const chartSelector = spaceY6.querySelector('.flex.flex-wrap.gap-2.mb-4') as HTMLElement;
+            
+            if (chartData.length > 0) {
+                if (chartContainer) {
+                    chartContainer.style.display = '';
+                }
+                if (chartSelector) {
+                    chartSelector.style.display = '';
+                }
+            }
+            
+            // Update chart data via custom event (React components listen for this)
+            // Dispatch with a small delay to ensure React components are mounted
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('chart-data-update', { detail: chartData }));
+            }, 50);
+            
+            // Also dispatch immediately in case components are already mounted
+            window.dispatchEvent(new CustomEvent('chart-data-update', { detail: chartData }));
+            
             // Update only the cards grid, preserve chart container
-            const cardsContainer = analyzeSection.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
+            const cardsContainer = spaceY6.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
             if (cardsContainer) {
                 cardsContainer.innerHTML = bucketsHTML;
             } else {
-                // If cards container doesn't exist, try to find or create the structure
-                let spaceY6 = analyzeSection.querySelector('.space-y-6');
-                if (!spaceY6) {
-                    // Create the space-y-6 container if it doesn't exist
-                    spaceY6 = document.createElement('div');
-                    spaceY6.className = 'space-y-6';
-                    analyzeSection.innerHTML = '';
-                    analyzeSection.appendChild(spaceY6);
-                }
-                
-                // Ensure chart container exists
-                let chartContainer = spaceY6.querySelector('#bar-chart-container');
-                if (!chartContainer) {
-                    chartContainer = document.createElement('div');
-                    chartContainer.id = 'bar-chart-container';
-                    spaceY6.appendChild(chartContainer);
-                }
-                
-                // Create or update cards container
-                let cardsDiv = spaceY6.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
-                if (!cardsDiv) {
-                    cardsDiv = document.createElement('div');
-                    cardsDiv.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6';
-                    spaceY6.appendChild(cardsDiv);
-                }
+                // Create cards container if it doesn't exist
+                const cardsDiv = document.createElement('div');
+                cardsDiv.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6';
                 cardsDiv.innerHTML = bucketsHTML;
+                spaceY6.appendChild(cardsDiv);
             }
+            
+            // Remove "No activity data available" message if it exists
+            const noDataMessage = spaceY6.querySelector('.text-center.text-\\[var\\(--color-ash\\)\\].py-8');
+            if (noDataMessage && chartData.length > 0) {
+                noDataMessage.remove();
+            }
+            
+            // Re-initialize chart type switcher after DOM update
+            setTimeout(() => {
+                // The MutationObserver in Analyze.astro should handle this, but trigger it manually
+                if (typeof window !== 'undefined' && document.querySelector('[data-chart-type]')) {
+                    const event = new CustomEvent('analyze-section-updated');
+                    window.dispatchEvent(event);
+                }
+            }, 100);
         }
 
         // LocalStorage key for saved user address
