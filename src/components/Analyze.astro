@@ -274,66 +274,95 @@ const chartData = bucketEntries
 
 <script is:inline>
     // Chart type switching functionality
+    let chartTypeSwitcherInitialized = false;
+    let chartButtonClickHandler = null;
+    
+    function switchChart(type) {
+        const chartButtons = document.querySelectorAll('[data-chart-type]');
+        const chartViews = document.querySelectorAll('.chart-view');
+        
+        // Hide all charts and remove active class
+        chartViews.forEach(view => {
+            if (view instanceof HTMLElement) {
+                view.style.display = 'none';
+                view.classList.remove('chart-active');
+            }
+        });
+        
+        // Show selected chart and add active class
+        const selectedChart = document.getElementById(`chart-${type}`);
+        if (selectedChart) {
+            selectedChart.style.display = 'block';
+            selectedChart.classList.add('chart-active');
+        }
+        
+        // Update button styles
+        chartButtons.forEach(btn => {
+            const btnType = btn.getAttribute('data-chart-type');
+            if (btnType === type) {
+                btn.classList.add('chart-button-active');
+                btn.classList.remove('bg-[var(--color-mist)]', 'text-[var(--color-bone)]');
+                btn.classList.add('bg-[var(--color-cyan)]', 'text-[var(--color-slate)]');
+            } else {
+                btn.classList.remove('chart-button-active');
+                btn.classList.remove('bg-[var(--color-cyan)]', 'text-[var(--color-slate)]');
+                btn.classList.add('bg-[var(--color-mist)]', 'text-[var(--color-bone)]');
+            }
+        });
+    }
+    
     function initChartTypeSwitcher() {
         const chartButtons = document.querySelectorAll('[data-chart-type]');
         const chartViews = document.querySelectorAll('.chart-view');
         
-        function switchChart(type) {
-            // Hide all charts and remove active class
-            chartViews.forEach(view => {
-                if (view instanceof HTMLElement) {
-                    view.style.display = 'none';
-                    view.classList.remove('chart-active');
-                }
-            });
-            
-            // Show selected chart and add active class
-            const selectedChart = document.getElementById(`chart-${type}`);
-            if (selectedChart) {
-                selectedChart.style.display = 'block';
-                selectedChart.classList.add('chart-active');
+        if (chartButtons.length === 0 || chartViews.length === 0) {
+            return; // Elements not ready yet
+        }
+        
+        // Use event delegation to avoid duplicate listeners
+        const analyzeSection = document.getElementById('analyze-section');
+        if (analyzeSection) {
+            // Remove old listener if exists
+            if (chartButtonClickHandler) {
+                analyzeSection.removeEventListener('click', chartButtonClickHandler);
             }
             
-            // Update button styles
-            chartButtons.forEach(btn => {
-                const btnType = btn.getAttribute('data-chart-type');
-                if (btnType === type) {
-                    btn.classList.add('chart-button-active');
-                    btn.classList.remove('bg-[var(--color-mist)]', 'text-[var(--color-bone)]');
-                    btn.classList.add('text-[var(--color-slate)]');
-                } else {
-                    btn.classList.remove('chart-button-active');
-                    btn.classList.remove('bg-[var(--color-cyan)]', 'text-[var(--color-slate)]');
-                    btn.classList.add('bg-[var(--color-mist)]', 'text-[var(--color-bone)]');
+            // Create new handler using event delegation
+            chartButtonClickHandler = function(e) {
+                const button = e.target.closest('[data-chart-type]');
+                if (button) {
+                    const type = button.getAttribute('data-chart-type');
+                    if (type) {
+                        switchChart(type);
+                    }
                 }
-            });
+            };
+            
+            analyzeSection.addEventListener('click', chartButtonClickHandler);
         }
         
         // Initialize with line chart as default
         switchChart('line');
         
-        // Add click handlers
-        chartButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const type = btn.getAttribute('data-chart-type');
-                if (type) {
-                    switchChart(type);
-                }
-            });
-        });
+        chartTypeSwitcherInitialized = true;
     }
     
     // Initialize on page load
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initChartTypeSwitcher);
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initChartTypeSwitcher, 100);
+        });
     } else {
-        initChartTypeSwitcher();
+        setTimeout(initChartTypeSwitcher, 100);
     }
     
-    // Re-initialize when analyze section is updated
+    // Re-initialize when analyze section is updated (reset flag first)
     const observer = new MutationObserver(() => {
-        if (document.querySelector('[data-chart-type]')) {
-            initChartTypeSwitcher();
+        // Check if chart buttons exist
+        const chartButtons = document.querySelectorAll('[data-chart-type]');
+        if (chartButtons.length > 0 && !chartTypeSwitcherInitialized) {
+            // Re-initialize after a short delay
+            setTimeout(initChartTypeSwitcher, 150);
         }
     });
     
@@ -341,4 +370,10 @@ const chartData = bucketEntries
     if (analyzeSection) {
         observer.observe(analyzeSection, { childList: true, subtree: true });
     }
+    
+    // Also listen for custom event from index.astro
+    window.addEventListener('analyze-section-updated', () => {
+        chartTypeSwitcherInitialized = false;
+        setTimeout(initChartTypeSwitcher, 150);
+    });
 </script>

@@ -8,7 +8,7 @@ import type { Activity } from "../types/polymarket";
 import Analyze from "../components/Analyze.astro";
 
 // Serialize initial data for client-side use
-const initialUser = '';   
+const initialUser = "";
 const activityData: Activity[] | null = import.meta.env.PROD
     ? (await getActivityByUser(initialUser)).data
     : activityDataMock;
@@ -20,8 +20,6 @@ const serializedActivityData = JSON.stringify(activityData || []);
 
 // Serialize initial user for client-side comparison
 const serializedInitialUser = JSON.stringify(initialUser);
-
-
 ---
 
 <BaseLayout title="Activity">
@@ -29,7 +27,10 @@ const serializedInitialUser = JSON.stringify(initialUser);
     <div class="mb-6">
         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div class="flex-1 w-full sm:w-auto mt-6">
-                <label for="user-input" class="block text-sm font-medium text-[var(--color-cyan)] mb-2">
+                <label
+                    for="user-input"
+                    class="block text-sm font-medium text-[var(--color-cyan)] mb-2"
+                >
                     User Address
                 </label>
                 <div class="relative flex items-center user-input-container">
@@ -46,14 +47,28 @@ const serializedInitialUser = JSON.stringify(initialUser);
                         class="flex items-center justify-center p-1.5 text-[var(--color-cyan)] hover:text-[var(--color-cyan)]/80 hover:bg-[var(--color-mist)]/30 rounded-lg transition-colors"
                         title="Save user address"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                            ></path>
                         </svg>
                     </button>
                 </div>
             </div>
             <div class="w-full sm:w-auto mt-6">
-                <label for="limit-input" class="block text-sm font-medium text-[var(--color-cyan)] mb-2">
+                <label
+                    for="limit-input"
+                    class="block text-sm font-medium text-[var(--color-cyan)] mb-2"
+                >
                     Max Records
                 </label>
                 <input
@@ -73,122 +88,199 @@ const serializedInitialUser = JSON.stringify(initialUser);
                 Fetch Activity
             </button>
         </div>
-        <div id="error-message" class="mt-2 text-sm text-[var(--color-coral)] hidden"></div>
-        <div id="loading-indicator" class="mt-2 text-sm text-[var(--color-cyan)] hidden">
+        <div
+            id="error-message"
+            class="mt-2 text-sm text-[var(--color-coral)] hidden"
+        >
+        </div>
+        <div
+            id="loading-indicator"
+            class="mt-2 text-sm text-[var(--color-cyan)] hidden"
+        >
             <span id="loading-text">Loading...</span>
             <div id="loading-progress" class="mt-2 hidden">
                 <div class="w-full bg-[var(--color-mist)] rounded-full h-2">
-                    <div id="progress-bar" class="bg-[var(--color-cyan)] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <div
+                        id="progress-bar"
+                        class="bg-[var(--color-cyan)] h-2 rounded-full transition-all duration-300"
+                        style="width: 0%"
+                    >
+                    </div>
                 </div>
-                <div id="progress-text" class="mt-1 text-xs text-[var(--color-ash)]"></div>
+                <div
+                    id="progress-text"
+                    class="mt-1 text-xs text-[var(--color-ash)]"
+                >
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="text-lg font-bold text-cyan-400 my-2">Summary</div>
     {/* Volume Summary Boxes */}
     <div id="summary-section">
-        {isActivityDataValid && (
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {/* BUY Volume */}
-                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
-                    <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
-                        BUY Volume
+        {
+            isActivityDataValid && (
+                <Fragment>
+                    <div class="text-lg font-bold text-cyan-400 my-2">
+                        Summary
                     </div>
-                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1" id="buy-count">
-                        {volumeMetrics.buyCount}
-                    </div>
-                    <div class="text-lg text-[var(--color-coral)]" id="buy-total">
-                        ${volumeMetrics.buyTotal.toLocaleString()}
-                    </div>
-                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        {/* BUY Volume */}
+                        <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                            <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
+                                BUY Volume
+                            </div>
+                            <div
+                                class="text-2xl font-bold text-[var(--color-bone)] mb-1"
+                                id="buy-count"
+                            >
+                                {volumeMetrics.buyCount}
+                            </div>
+                            <div
+                                class="text-lg text-[var(--color-coral)]"
+                                id="buy-total"
+                            >
+                                ${volumeMetrics.buyTotal.toLocaleString()}
+                            </div>
+                        </div>
 
-                {/* REDEEM Volume */}
-                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
-                    <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
-                        REDEEM Volume
-                    </div>
-                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1" id="redeem-count">
-                        {volumeMetrics.redeemCount}
-                    </div>
-                    <div class="text-lg text-[var(--color-cyan)]" id="redeem-total">
-                        ${volumeMetrics.redeemTotal.toLocaleString()}
-                    </div>
-                </div>
+                        {/* REDEEM Volume */}
+                        <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                            <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
+                                REDEEM Volume
+                            </div>
+                            <div
+                                class="text-2xl font-bold text-[var(--color-bone)] mb-1"
+                                id="redeem-count"
+                            >
+                                {volumeMetrics.redeemCount}
+                            </div>
+                            <div
+                                class="text-lg text-[var(--color-cyan)]"
+                                id="redeem-total"
+                            >
+                                ${volumeMetrics.redeemTotal.toLocaleString()}
+                            </div>
+                        </div>
 
-                {/* Difference */}
-                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
-                    <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
-                        Difference
+                        {/* Difference */}
+                        <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+                            <div class="text-sm text-[var(--color-ash)] mb-2 uppercase tracking-wider">
+                                Difference
+                            </div>
+                            <div
+                                class="text-2xl font-bold text-[var(--color-bone)] mb-1"
+                                id="difference-count"
+                            >
+                                {volumeMetrics.buyCount -
+                                    volumeMetrics.redeemCount}
+                                <span class="text-sm text-gray-500">
+                                    unsuccessful trades
+                                </span>
+                            </div>
+                            <div
+                                class={`text-lg ${
+                                    volumeMetrics.difference >= 0
+                                        ? "text-[var(--color-cyan)]"
+                                        : "text-[var(--color-coral)]"
+                                }`}
+                                id="difference-total"
+                            >
+                                ${volumeMetrics.difference.toLocaleString()}
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-2xl font-bold text-[var(--color-bone)] mb-1" id="difference-count">
-                        {volumeMetrics.buyCount - volumeMetrics.redeemCount}
-                        <span class="text-sm text-gray-500">
-                            unsuccessful trades
-                        </span>
-                    </div>
-                    <div
-                        class={`text-lg ${
-                            volumeMetrics.difference >= 0
-                                ? "text-[var(--color-cyan)]"
-                                : "text-[var(--color-coral)]"
-                        }`}
-                        id="difference-total"
-                    >
-                        ${volumeMetrics.difference.toLocaleString()}
-                    </div>
-                </div>
+                </Fragment>
+            )
+        }
+    </div>
+
+    <!-- Tabs for Analyze and Activity -->
+    <div class="mb-6">
+        <div class="border-b border-[var(--color-mist)]">
+            <nav class="flex space-x-8" aria-label="Tabs">
+                <button
+                    id="tab-analyze"
+                    class="tab-button active px-1 py-4 text-sm font-medium border-b-2 border-[var(--color-cyan)] text-[var(--color-cyan)]"
+                    data-tab="analyze"
+                >
+                    Analyze
+                </button>
+                <button
+                    id="tab-activity"
+                    class="tab-button px-1 py-4 text-sm font-medium border-b-2 border-transparent text-[var(--color-ash)] hover:text-[var(--color-bone)] hover:border-[var(--color-mist)]"
+                    data-tab="activity"
+                >
+                    Activity
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="tab-content">
+        <!-- Analyze Tab Content -->
+        <div id="tab-panel-analyze" class="tab-panel">
+            <div id="analyze-section">
+                <Analyze activityData={activityData} />
             </div>
-        )}
+        </div>
+
+        <!-- Activity Tab Content -->
+        <div id="tab-panel-activity" class="tab-panel hidden">
+            <div id="table-section">
+                {
+                    isActivityDataValid && (
+                        <Table>
+                            <Fragment slot="header">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                        Time
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                        Title
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                        Type
+                                    </th>
+                                </tr>
+                            </Fragment>
+                            <Fragment slot="body">
+                                {isActivityDataValid &&
+                                    activityData.map((activity) => (
+                                        <tr class="hover:bg-[var(--color-charcoal)]/50 transition-colors">
+                                            <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                                {convertTimestampToDate(
+                                                    activity.timestamp,
+                                                )}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                                {activity.title}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                                {activity.type}
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </Fragment>
+                        </Table>
+                    )
+                }
+            </div>
+        </div>
     </div>
 
-    <div class="text-lg font-bold text-cyan-400 my-2">Analyze</div>
-    <div id="analyze-section">
-        <Analyze activityData={activityData} />
-    </div>
-
-    
     <!-- Serialized initial data for client-side -->
-    <script id="initial-activity-data" type="application/json" set:html={serializedActivityData}></script>
-    <script id="initial-user-data" type="application/json" set:html={serializedInitialUser}></script>
-
-    <!-- Table to show all activity data -->
-    <div class="text-lg font-bold text-cyan-400 my-2">Activity</div>
-    <div id="table-section">
-        {isActivityDataValid && (
-            <Table>
-                <Fragment slot="header">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
-                            Time
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
-                            Title
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
-                            Type
-                        </th>
-                    </tr>
-                </Fragment>
-                <Fragment slot="body">
-                    {isActivityDataValid &&
-                        activityData.map((activity) => (
-                            <tr class="hover:bg-[var(--color-charcoal)]/50 transition-colors">
-                                <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
-                                    {convertTimestampToDate(activity.timestamp)}
-                                </td>
-                                <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
-                                    {activity.title}
-                                </td>
-                                <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
-                                    {activity.type}
-                                </td>
-                            </tr>
-                        ))}
-                </Fragment>
-            </Table>
-        )}
-    </div>
+    <script
+        id="initial-activity-data"
+        type="application/json"
+        set:html={serializedActivityData}
+    />
+    <script
+        id="initial-user-data"
+        type="application/json"
+        set:html={serializedInitialUser}
+    />
 
     <script>
         // @ts-nocheck
@@ -207,7 +299,9 @@ const serializedInitialUser = JSON.stringify(initialUser);
             const buyActivities = activityData.filter(
                 (a) => a.side === "BUY" || a.type === "TRADE",
             );
-            const redeemActivities = activityData.filter((a) => a.type === "REDEEM");
+            const redeemActivities = activityData.filter(
+                (a) => a.type === "REDEEM",
+            );
 
             const buyTotal = buyActivities.reduce(
                 (sum, a) => sum + (a.usdcSize || 0),
@@ -239,8 +333,12 @@ const serializedInitialUser = JSON.stringify(initialUser);
             });
         }
 
-        async function fetchActivityData(user: string, maxRecords: number, onProgress?: (current: number, total: number) => void) {
-            const apiBaseUrl = 'https://data-api.polymarket.com';
+        async function fetchActivityData(
+            user: string,
+            maxRecords: number,
+            onProgress?: (current: number, total: number) => void,
+        ) {
+            const apiBaseUrl = "https://data-api.polymarket.com";
             const limit = 100;
             const MAX_RECORDS = maxRecords || 1000;
             let offset = 0;
@@ -251,29 +349,31 @@ const serializedInitialUser = JSON.stringify(initialUser);
             try {
                 // First, fetch the first page to estimate total
                 const firstPageUrl = new URL(`${apiBaseUrl}/activity`);
-                firstPageUrl.searchParams.set('user', user);
-                firstPageUrl.searchParams.set('limit', limit.toString());
-                firstPageUrl.searchParams.set('offset', '0');
+                firstPageUrl.searchParams.set("user", user);
+                firstPageUrl.searchParams.set("limit", limit.toString());
+                firstPageUrl.searchParams.set("offset", "0");
 
                 const firstResponse = await fetch(firstPageUrl.toString(), {
                     headers: {
-                        'Accept': 'application/json',
+                        Accept: "application/json",
                     },
                 });
 
                 if (!firstResponse.ok) {
-                    throw new Error(`API request failed with status ${firstResponse.status}`);
+                    throw new Error(
+                        `API request failed with status ${firstResponse.status}`,
+                    );
                 }
 
                 const firstPageData = await firstResponse.json();
-                
+
                 if (!firstPageData || firstPageData.length === 0) {
                     return [];
                 }
 
                 allActivities.push(...firstPageData);
                 pageCount = 1;
-                
+
                 // If we got a full page, estimate there might be more (up to MAX_RECORDS)
                 if (firstPageData.length === limit) {
                     totalEstimated = Math.min(limit * 2, MAX_RECORDS); // Start with estimate of 2 pages, but cap at MAX_RECORDS
@@ -288,24 +388,26 @@ const serializedInitialUser = JSON.stringify(initialUser);
                 // Continue fetching remaining pages up to MAX_RECORDS
                 while (allActivities.length < MAX_RECORDS) {
                     offset += limit;
-                    
+
                     // Calculate how many records we still need
                     const remainingRecords = MAX_RECORDS - allActivities.length;
                     const currentLimit = Math.min(limit, remainingRecords);
-                    
+
                     const apiUrl = new URL(`${apiBaseUrl}/activity`);
-                    apiUrl.searchParams.set('user', user);
-                    apiUrl.searchParams.set('limit', currentLimit.toString());
-                    apiUrl.searchParams.set('offset', offset.toString());
+                    apiUrl.searchParams.set("user", user);
+                    apiUrl.searchParams.set("limit", currentLimit.toString());
+                    apiUrl.searchParams.set("offset", offset.toString());
 
                     const response = await fetch(apiUrl.toString(), {
                         headers: {
-                            'Accept': 'application/json',
+                            Accept: "application/json",
                         },
                     });
 
                     if (!response.ok) {
-                        throw new Error(`API request failed with status ${response.status}`);
+                        throw new Error(
+                            `API request failed with status ${response.status}`,
+                        );
                     }
 
                     const pageData = await response.json();
@@ -316,14 +418,26 @@ const serializedInitialUser = JSON.stringify(initialUser);
                     }
 
                     // Add this page's data to the collection (only up to MAX_RECORDS)
-                    const recordsToAdd = Math.min(pageData.length, remainingRecords);
+                    const recordsToAdd = Math.min(
+                        pageData.length,
+                        remainingRecords,
+                    );
                     allActivities.push(...pageData.slice(0, recordsToAdd));
                     pageCount++;
 
                     // Update progress
-                    if (pageData.length === limit && allActivities.length < MAX_RECORDS) {
+                    if (
+                        pageData.length === limit &&
+                        allActivities.length < MAX_RECORDS
+                    ) {
                         // Might be more pages, update estimate (but cap at MAX_RECORDS)
-                        totalEstimated = Math.min(Math.max(totalEstimated, allActivities.length + limit), MAX_RECORDS);
+                        totalEstimated = Math.min(
+                            Math.max(
+                                totalEstimated,
+                                allActivities.length + limit,
+                            ),
+                            MAX_RECORDS,
+                        );
                     } else {
                         // Got less than limit, this is the last page
                         totalEstimated = allActivities.length;
@@ -334,7 +448,10 @@ const serializedInitialUser = JSON.stringify(initialUser);
                     }
 
                     // If we've reached the maximum or got less than the limit, we're done
-                    if (allActivities.length >= MAX_RECORDS || pageData.length < limit) {
+                    if (
+                        allActivities.length >= MAX_RECORDS ||
+                        pageData.length < limit
+                    ) {
                         break;
                     }
                 }
@@ -346,17 +463,17 @@ const serializedInitialUser = JSON.stringify(initialUser);
 
                 return allActivities;
             } catch (error) {
-                console.error('Error fetching activity data:', error);
+                console.error("Error fetching activity data:", error);
                 throw error;
             }
         }
 
         function updateSummary(metrics, hasData) {
-            const summarySection = document.getElementById('summary-section');
+            const summarySection = document.getElementById("summary-section");
             if (!summarySection) return;
 
             if (!hasData) {
-                summarySection.innerHTML = '';
+                summarySection.innerHTML = "";
                 return;
             }
 
@@ -378,7 +495,7 @@ const serializedInitialUser = JSON.stringify(initialUser);
                             ${metrics.buyCount - metrics.redeemCount}
                             <span class="text-sm text-gray-500"> unsuccessful trades</span>
                         </div>
-                        <div class="text-lg ${metrics.difference >= 0 ? 'text-[var(--color-cyan)]' : 'text-[var(--color-coral)]'}">
+                        <div class="text-lg ${metrics.difference >= 0 ? "text-[var(--color-cyan)]" : "text-[var(--color-coral)]"}">
                             $${metrics.difference.toLocaleString()}
                         </div>
                     </div>
@@ -392,7 +509,7 @@ const serializedInitialUser = JSON.stringify(initialUser);
         const recordsPerPage = 100;
 
         function updateTable(activityData, page = 1) {
-            const tableSection = document.getElementById('table-section');
+            const tableSection = document.getElementById("table-section");
             if (!tableSection) return;
 
             // Store full data
@@ -400,18 +517,27 @@ const serializedInitialUser = JSON.stringify(initialUser);
             currentPage = page;
 
             if (!fullActivityData || fullActivityData.length === 0) {
-                tableSection.innerHTML = '<div class="text-center text-[var(--color-ash)] py-8">No activity data available</div>';
+                tableSection.innerHTML =
+                    '<div class="text-center text-[var(--color-ash)] py-8">No activity data available</div>';
                 return;
             }
 
             // Calculate pagination
-            const totalPages = Math.ceil(fullActivityData.length / recordsPerPage);
+            const totalPages = Math.ceil(
+                fullActivityData.length / recordsPerPage,
+            );
             const startIndex = (currentPage - 1) * recordsPerPage;
             const endIndex = startIndex + recordsPerPage;
-            const currentPageData = fullActivityData.slice(startIndex, endIndex);
+            const currentPageData = fullActivityData.slice(
+                startIndex,
+                endIndex,
+            );
 
             // Generate pagination HTML
-            const paginationHTML = generatePaginationHTML(currentPage, totalPages);
+            const paginationHTML = generatePaginationHTML(
+                currentPage,
+                totalPages,
+            );
 
             const tableHTML = `
                 <div class="overflow-x-auto">
@@ -430,19 +556,23 @@ const serializedInitialUser = JSON.stringify(initialUser);
                             </tr>
                         </thead>
                         <tbody class="bg-[var(--color-slate)] divide-y divide-[var(--color-mist)]">
-                            ${currentPageData.map((activity) => `
+                            ${currentPageData
+                                .map(
+                                    (activity) => `
                                 <tr class="hover:bg-[var(--color-charcoal)]/50 transition-colors">
                                     <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
                                         ${formatTimestamp(activity.timestamp)}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
-                                        ${activity.title || ''}
+                                        ${activity.title || ""}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
-                                        ${activity.type || ''}
+                                        ${activity.type || ""}
                                     </td>
                                 </tr>
-                            `).join('')}
+                            `,
+                                )
+                                .join("")}
                         </tbody>
                     </table>
                 </div>
@@ -458,7 +588,7 @@ const serializedInitialUser = JSON.stringify(initialUser);
             // Always show pagination if there's data, even if only one page
             // This helps users understand the pagination system
             if (totalPages < 1) {
-                return '';
+                return "";
             }
 
             const pageNumbers = [];
@@ -478,27 +608,33 @@ const serializedInitialUser = JSON.stringify(initialUser);
                     for (let i = 2; i <= 4; i++) {
                         pageNumbers.push(i);
                     }
-                    pageNumbers.push('...');
+                    pageNumbers.push("...");
                     pageNumbers.push(totalPages);
                 } else if (currentPage >= totalPages - 2) {
                     // Near the end
-                    pageNumbers.push('...');
+                    pageNumbers.push("...");
                     for (let i = totalPages - 3; i <= totalPages; i++) {
                         pageNumbers.push(i);
                     }
                 } else {
                     // In the middle
-                    pageNumbers.push('...');
+                    pageNumbers.push("...");
                     for (let i = currentPage - 1; i <= currentPage + 1; i++) {
                         pageNumbers.push(i);
                     }
-                    pageNumbers.push('...');
+                    pageNumbers.push("...");
                     pageNumbers.push(totalPages);
                 }
             }
 
-            const prevDisabled = currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--color-cyan)]/20';
-            const nextDisabled = currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--color-cyan)]/20';
+            const prevDisabled =
+                currentPage === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-[var(--color-cyan)]/20";
+            const nextDisabled =
+                currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-[var(--color-cyan)]/20";
 
             return `
                 <div class="mt-6 flex items-center justify-between border-t border-[var(--color-mist)] bg-[var(--color-slate)] px-4 py-3 sm:px-6">
@@ -506,14 +642,14 @@ const serializedInitialUser = JSON.stringify(initialUser);
                         <button
                             id="pagination-prev-mobile"
                             class="relative inline-flex items-center rounded-md border border-[var(--color-mist)] bg-[var(--color-slate)] px-4 py-2 text-sm font-medium text-[var(--color-bone)] ${prevDisabled}"
-                            ${currentPage === 1 ? 'disabled' : ''}
+                            ${currentPage === 1 ? "disabled" : ""}
                         >
                             Previous
                         </button>
                         <button
                             id="pagination-next-mobile"
                             class="relative ml-3 inline-flex items-center rounded-md border border-[var(--color-mist)] bg-[var(--color-slate)] px-4 py-2 text-sm font-medium text-[var(--color-bone)] ${nextDisabled}"
-                            ${currentPage === totalPages ? 'disabled' : ''}
+                            ${currentPage === totalPages ? "disabled" : ""}
                         >
                             Next
                         </button>
@@ -521,7 +657,7 @@ const serializedInitialUser = JSON.stringify(initialUser);
                     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
                             <p class="text-sm text-[var(--color-bone)]">
-                                Showing <span class="font-medium">${((currentPage - 1) * recordsPerPage) + 1}</span> to <span class="font-medium">${Math.min(currentPage * recordsPerPage, fullActivityData.length)}</span> of <span class="font-medium">${fullActivityData.length}</span> results
+                                Showing <span class="font-medium">${(currentPage - 1) * recordsPerPage + 1}</span> to <span class="font-medium">${Math.min(currentPage * recordsPerPage, fullActivityData.length)}</span> of <span class="font-medium">${fullActivityData.length}</span> results
                             </p>
                         </div>
                         <div>
@@ -529,39 +665,41 @@ const serializedInitialUser = JSON.stringify(initialUser);
                                 <button
                                     id="pagination-prev"
                                     class="relative inline-flex items-center rounded-l-md px-2 py-2 text-[var(--color-bone)] ring-1 ring-inset ring-[var(--color-mist)] hover:bg-[var(--color-cyan)]/20 focus:z-20 focus:outline-offset-0 ${prevDisabled}"
-                                    ${currentPage === 1 ? 'disabled' : ''}
+                                    ${currentPage === 1 ? "disabled" : ""}
                                 >
                                     <span class="sr-only">Previous</span>
                                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
                                     </svg>
                                 </button>
-                                ${pageNumbers.map((page, index) => {
-                                    if (page === '...') {
-                                        return `
+                                ${pageNumbers
+                                    .map((page, index) => {
+                                        if (page === "...") {
+                                            return `
                                             <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-[var(--color-ash)] ring-1 ring-inset ring-[var(--color-mist)]">
                                                 ...
                                             </span>
                                         `;
-                                    }
-                                    const isActive = page === currentPage;
-                                    return `
+                                        }
+                                        const isActive = page === currentPage;
+                                        return `
                                         <button
                                             data-page="${page}"
                                             class="pagination-page relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                                                 isActive
-                                                    ? 'z-10 bg-[var(--color-cyan)] text-[var(--color-slate)] focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-cyan)]'
-                                                    : 'text-[var(--color-bone)] ring-1 ring-inset ring-[var(--color-mist)] hover:bg-[var(--color-cyan)]/20 focus:z-20 focus:outline-offset-0'
+                                                    ? "z-10 bg-[var(--color-cyan)] text-[var(--color-slate)] focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-cyan)]"
+                                                    : "text-[var(--color-bone)] ring-1 ring-inset ring-[var(--color-mist)] hover:bg-[var(--color-cyan)]/20 focus:z-20 focus:outline-offset-0"
                                             }"
                                         >
                                             ${page}
                                         </button>
                                     `;
-                                }).join('')}
+                                    })
+                                    .join("")}
                                 <button
                                     id="pagination-next"
                                     class="relative inline-flex items-center rounded-r-md px-2 py-2 text-[var(--color-bone)] ring-1 ring-inset ring-[var(--color-mist)] hover:bg-[var(--color-cyan)]/20 focus:z-20 focus:outline-offset-0 ${nextDisabled}"
-                                    ${currentPage === totalPages ? 'disabled' : ''}
+                                    ${currentPage === totalPages ? "disabled" : ""}
                                 >
                                     <span class="sr-only">Next</span>
                                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -577,76 +715,104 @@ const serializedInitialUser = JSON.stringify(initialUser);
 
         function attachPaginationListeners() {
             // Previous button (desktop)
-            const prevBtn = document.getElementById('pagination-prev');
+            const prevBtn = document.getElementById("pagination-prev");
             if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
+                prevBtn.addEventListener("click", () => {
                     if (currentPage > 1) {
                         updateTable(fullActivityData, currentPage - 1);
                         // Scroll to top of table
-                        const tableSection = document.getElementById('table-section');
+                        const tableSection =
+                            document.getElementById("table-section");
                         if (tableSection) {
-                            tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            tableSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
                         }
                     }
                 });
             }
 
             // Next button (desktop)
-            const nextBtn = document.getElementById('pagination-next');
+            const nextBtn = document.getElementById("pagination-next");
             if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    const totalPages = Math.ceil(fullActivityData.length / recordsPerPage);
+                nextBtn.addEventListener("click", () => {
+                    const totalPages = Math.ceil(
+                        fullActivityData.length / recordsPerPage,
+                    );
                     if (currentPage < totalPages) {
                         updateTable(fullActivityData, currentPage + 1);
                         // Scroll to top of table
-                        const tableSection = document.getElementById('table-section');
+                        const tableSection =
+                            document.getElementById("table-section");
                         if (tableSection) {
-                            tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            tableSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
                         }
                     }
                 });
             }
 
             // Previous button (mobile)
-            const prevBtnMobile = document.getElementById('pagination-prev-mobile');
+            const prevBtnMobile = document.getElementById(
+                "pagination-prev-mobile",
+            );
             if (prevBtnMobile) {
-                prevBtnMobile.addEventListener('click', () => {
+                prevBtnMobile.addEventListener("click", () => {
                     if (currentPage > 1) {
                         updateTable(fullActivityData, currentPage - 1);
-                        const tableSection = document.getElementById('table-section');
+                        const tableSection =
+                            document.getElementById("table-section");
                         if (tableSection) {
-                            tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            tableSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
                         }
                     }
                 });
             }
 
             // Next button (mobile)
-            const nextBtnMobile = document.getElementById('pagination-next-mobile');
+            const nextBtnMobile = document.getElementById(
+                "pagination-next-mobile",
+            );
             if (nextBtnMobile) {
-                nextBtnMobile.addEventListener('click', () => {
-                    const totalPages = Math.ceil(fullActivityData.length / recordsPerPage);
+                nextBtnMobile.addEventListener("click", () => {
+                    const totalPages = Math.ceil(
+                        fullActivityData.length / recordsPerPage,
+                    );
                     if (currentPage < totalPages) {
                         updateTable(fullActivityData, currentPage + 1);
-                        const tableSection = document.getElementById('table-section');
+                        const tableSection =
+                            document.getElementById("table-section");
                         if (tableSection) {
-                            tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            tableSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
                         }
                     }
                 });
             }
 
             // Page number buttons
-            const pageButtons = document.querySelectorAll('.pagination-page');
-            pageButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const page = parseInt(btn.getAttribute('data-page') || '1');
+            const pageButtons = document.querySelectorAll(".pagination-page");
+            pageButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const page = parseInt(btn.getAttribute("data-page") || "1");
                     if (page !== currentPage) {
                         updateTable(fullActivityData, page);
                         // Scroll to top of table
-                        const tableSection = document.getElementById('table-section');
+                        const tableSection =
+                            document.getElementById("table-section");
                         if (tableSection) {
-                            tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            tableSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
                         }
                     }
                 });
@@ -656,48 +822,50 @@ const serializedInitialUser = JSON.stringify(initialUser);
         function getBucketInfo(timestamp) {
             const date = new Date(timestamp * 1000);
             const hour = date.getUTCHours();
-            
+
             let bucketDate = new Date(date);
             if (hour < 12) {
                 bucketDate.setUTCDate(bucketDate.getUTCDate() - 1);
             }
-            
+
             bucketDate.setUTCHours(0, 0, 0, 0);
-            
+
             const day1 = new Date(bucketDate);
             const day2 = new Date(day1);
             day2.setUTCDate(day2.getUTCDate() + 1);
-            
+
             const formatDate = (d) => {
-                return d.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    timeZone: 'UTC'
+                return d.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    timeZone: "UTC",
                 });
             };
-            
+
             return {
                 key: `${formatDate(day1)} - ${formatDate(day2)}`,
-                startDate: day1
+                startDate: day1,
             };
         }
 
         function calculateBucketMetrics(activities) {
             const buyActivities = activities.filter(
-                (a) => a.side === "BUY" || a.type === "TRADE"
+                (a) => a.side === "BUY" || a.type === "TRADE",
             );
-            const redeemActivities = activities.filter((a) => a.type === "REDEEM");
-            
+            const redeemActivities = activities.filter(
+                (a) => a.type === "REDEEM",
+            );
+
             const buyTotal = buyActivities.reduce(
                 (sum, a) => sum + (a.usdcSize || 0),
-                0
+                0,
             );
             const redeemTotal = redeemActivities.reduce(
                 (sum, a) => sum + (a.usdcSize || 0),
-                0
+                0,
             );
-            
+
             return {
                 buyCount: buyActivities.length,
                 buyTotal: Number(buyTotal.toFixed(2)),
@@ -708,11 +876,12 @@ const serializedInitialUser = JSON.stringify(initialUser);
         }
 
         function updateAnalyze(activityData) {
-            const analyzeSection = document.getElementById('analyze-section');
+            const analyzeSection = document.getElementById("analyze-section");
             if (!analyzeSection) return;
 
             if (!activityData || activityData.length === 0) {
-                analyzeSection.innerHTML = '<div class="text-center text-[var(--color-ash)] py-8">No activity data available</div>';
+                analyzeSection.innerHTML =
+                    '<div class="text-center text-[var(--color-ash)] py-8">No activity data available</div>';
                 return;
             }
 
@@ -724,7 +893,7 @@ const serializedInitialUser = JSON.stringify(initialUser);
                     buckets.set(bucketInfo.key, {
                         key: bucketInfo.key,
                         startDate: bucketInfo.startDate,
-                        activities: []
+                        activities: [],
                     });
                 }
                 buckets.get(bucketInfo.key).activities.push(activity);
@@ -747,12 +916,15 @@ const serializedInitialUser = JSON.stringify(initialUser);
                 .reverse(); // Reverse to show oldest to newest
 
             // Update chart data via custom event
-            window.dispatchEvent(new CustomEvent('chart-data-update', { detail: chartData }));
+            window.dispatchEvent(
+                new CustomEvent("chart-data-update", { detail: chartData }),
+            );
 
             // Generate HTML for bucket cards
-            const bucketsHTML = bucketEntries.map((bucket) => {
-                const metrics = calculateBucketMetrics(bucket.activities);
-                return `
+            const bucketsHTML = bucketEntries
+                .map((bucket) => {
+                    const metrics = calculateBucketMetrics(bucket.activities);
+                    return `
                     <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-4">
                         <div class="text-sm font-semibold text-[var(--color-cyan)] mb-2 border-b border-[var(--color-mist)]">
                             ${bucket.key}
@@ -776,85 +948,110 @@ const serializedInitialUser = JSON.stringify(initialUser);
                                 <span class="text-sm text-[var(--color-ash)] uppercase tracking-wider">Difference</span>
                                 <div class="text-right">
                                     <div class="text-sm font-semibold text-[var(--color-bone)]">${metrics.buyCount - metrics.redeemCount}</div>
-                                    <div class="text-sm font-semibold ${metrics.difference >= 0 ? 'text-green-400' : 'text-red-400'}">$${metrics.difference.toLocaleString()}</div>
+                                    <div class="text-sm font-semibold ${metrics.difference >= 0 ? "text-green-400" : "text-red-400"}">$${metrics.difference.toLocaleString()}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
-            }).join('');
+                })
+                .join("");
 
             // Find the space-y-6 container (should always exist now)
-            const spaceY6 = analyzeSection.querySelector('.space-y-6');
+            const spaceY6 = analyzeSection.querySelector(".space-y-6");
             if (!spaceY6) {
-                console.error('Analyze section structure not found');
+                console.error("Analyze section structure not found");
                 return;
             }
-            
+
             // Show chart container and selector if they were hidden
-            const chartContainer = spaceY6.querySelector('#bar-chart-container') as HTMLElement;
-            const chartSelector = spaceY6.querySelector('.flex.flex-wrap.gap-2.mb-4') as HTMLElement;
-            
+            const chartContainer = spaceY6.querySelector(
+                "#bar-chart-container",
+            ) as HTMLElement;
+            const chartSelector = spaceY6.querySelector(
+                ".flex.flex-wrap.gap-2.mb-4",
+            ) as HTMLElement;
+
             if (chartData.length > 0) {
                 if (chartContainer) {
-                    chartContainer.style.display = '';
+                    chartContainer.style.display = "";
                 }
                 if (chartSelector) {
-                    chartSelector.style.display = '';
+                    chartSelector.style.display = "";
                 }
             }
-            
+
             // Update chart data via custom event (React components listen for this)
             // Dispatch with a small delay to ensure React components are mounted
             setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('chart-data-update', { detail: chartData }));
+                window.dispatchEvent(
+                    new CustomEvent("chart-data-update", { detail: chartData }),
+                );
             }, 50);
-            
+
             // Also dispatch immediately in case components are already mounted
-            window.dispatchEvent(new CustomEvent('chart-data-update', { detail: chartData }));
-            
+            window.dispatchEvent(
+                new CustomEvent("chart-data-update", { detail: chartData }),
+            );
+
             // Update only the cards grid, preserve chart container
-            const cardsContainer = spaceY6.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
+            const cardsContainer = spaceY6.querySelector(
+                ".grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3",
+            );
             if (cardsContainer) {
                 cardsContainer.innerHTML = bucketsHTML;
             } else {
                 // Create cards container if it doesn't exist
-                const cardsDiv = document.createElement('div');
-                cardsDiv.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6';
+                const cardsDiv = document.createElement("div");
+                cardsDiv.className =
+                    "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6";
                 cardsDiv.innerHTML = bucketsHTML;
                 spaceY6.appendChild(cardsDiv);
             }
-            
+
             // Remove "No activity data available" message if it exists
-            const noDataMessage = spaceY6.querySelector('.text-center.text-\\[var\\(--color-ash\\)\\].py-8');
+            const noDataMessage = spaceY6.querySelector(
+                ".text-center.text-\\[var\\(--color-ash\\)\\].py-8",
+            );
             if (noDataMessage && chartData.length > 0) {
                 noDataMessage.remove();
             }
-            
+
             // Re-initialize chart type switcher after DOM update
             setTimeout(() => {
                 // The MutationObserver in Analyze.astro should handle this, but trigger it manually
-                if (typeof window !== 'undefined' && document.querySelector('[data-chart-type]')) {
-                    const event = new CustomEvent('analyze-section-updated');
+                if (
+                    typeof window !== "undefined" &&
+                    document.querySelector("[data-chart-type]")
+                ) {
+                    const event = new CustomEvent("analyze-section-updated");
                     window.dispatchEvent(event);
                 }
             }, 100);
         }
 
         // LocalStorage key for saved user address
-        const SAVED_USER_KEY = 'polyme-saved-user-address';
+        const SAVED_USER_KEY = "polyme-saved-user-address";
 
         // Event handlers
-        const userInput = document.getElementById('user-input') as HTMLInputElement;
-        const limitInput = document.getElementById('limit-input') as HTMLInputElement;
-        const fetchButton = document.getElementById('fetch-button') as HTMLButtonElement;
-        const saveUserButton = document.getElementById('save-user-button') as HTMLButtonElement;
-        const errorMessage = document.getElementById('error-message');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const loadingText = document.getElementById('loading-text');
-        const loadingProgress = document.getElementById('loading-progress');
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
+        const userInput = document.getElementById(
+            "user-input",
+        ) as HTMLInputElement;
+        const limitInput = document.getElementById(
+            "limit-input",
+        ) as HTMLInputElement;
+        const fetchButton = document.getElementById(
+            "fetch-button",
+        ) as HTMLButtonElement;
+        const saveUserButton = document.getElementById(
+            "save-user-button",
+        ) as HTMLButtonElement;
+        const errorMessage = document.getElementById("error-message");
+        const loadingIndicator = document.getElementById("loading-indicator");
+        const loadingText = document.getElementById("loading-text");
+        const loadingProgress = document.getElementById("loading-progress");
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
 
         // Load saved user address from localStorage on page load
         function loadSavedUser() {
@@ -865,7 +1062,7 @@ const serializedInitialUser = JSON.stringify(initialUser);
                     return savedUser;
                 }
             } catch (e) {
-                console.error('Error loading saved user:', e);
+                console.error("Error loading saved user:", e);
             }
             return null;
         }
@@ -873,67 +1070,83 @@ const serializedInitialUser = JSON.stringify(initialUser);
         // Save user address to localStorage
         function saveUserAddress() {
             if (!userInput) return;
-            
-            const user = userInput.value.trim().split('-')[0];
+
+            const user = userInput.value.trim().split("-")[0];
             if (user) {
                 try {
                     localStorage.setItem(SAVED_USER_KEY, user);
                     // Show visual feedback
-                    const originalTitle = saveUserButton.getAttribute('title');
-                    saveUserButton.setAttribute('title', 'Saved!');
-                    saveUserButton.classList.add('text-green-400');
+                    const originalTitle = saveUserButton.getAttribute("title");
+                    saveUserButton.setAttribute("title", "Saved!");
+                    saveUserButton.classList.add("text-green-400");
                     setTimeout(() => {
-                        saveUserButton.setAttribute('title', originalTitle || 'Save user address');
-                        saveUserButton.classList.remove('text-green-400');
+                        saveUserButton.setAttribute(
+                            "title",
+                            originalTitle || "Save user address",
+                        );
+                        saveUserButton.classList.remove("text-green-400");
                     }, 2000);
                 } catch (e) {
-                    console.error('Error saving user address:', e);
+                    console.error("Error saving user address:", e);
                 }
             }
         }
 
         // Save button event listener
-        saveUserButton?.addEventListener('click', saveUserAddress);
+        saveUserButton?.addEventListener("click", saveUserAddress);
 
-        fetchButton?.addEventListener('click', async () => {
+        fetchButton?.addEventListener("click", async () => {
             // polymarket adds timestamp to the user address when copied from the website
-            const user = userInput?.value.trim().split('-')[0];
-            
+            const user = userInput?.value.trim().split("-")[0];
+
             if (!user) {
                 if (errorMessage) {
-                    errorMessage.textContent = 'Please enter a user address';
-                    errorMessage.classList.remove('hidden');
+                    errorMessage.textContent = "Please enter a user address";
+                    errorMessage.classList.remove("hidden");
                 }
                 return;
             }
 
             // Get limit from input, default to 1000 if invalid
-            const maxRecords = parseInt(limitInput?.value || '1000', 10);
-            const validMaxRecords = isNaN(maxRecords) || maxRecords < 1 ? 1000 : Math.min(maxRecords, 10000);
+            const maxRecords = parseInt(limitInput?.value || "1000", 10);
+            const validMaxRecords =
+                isNaN(maxRecords) || maxRecords < 1
+                    ? 1000
+                    : Math.min(maxRecords, 10000);
 
             // Show loading state
             fetchButton.disabled = true;
-            if (loadingIndicator) loadingIndicator.classList.remove('hidden');
-            if (loadingText) loadingText.textContent = 'Loading...';
-            if (loadingProgress) loadingProgress.classList.add('hidden');
-            if (errorMessage) errorMessage.classList.add('hidden');
+            if (loadingIndicator) loadingIndicator.classList.remove("hidden");
+            if (loadingText) loadingText.textContent = "Loading...";
+            if (loadingProgress) loadingProgress.classList.add("hidden");
+            if (errorMessage) errorMessage.classList.add("hidden");
 
             try {
-                const activityData = await fetchActivityData(user, validMaxRecords, (current, total) => {
-                    // Update progress indicator
-                    if (loadingText) {
-                        loadingText.textContent = `Loading... (${current.toLocaleString()} records)`;
-                    }
-                    if (loadingProgress && progressBar && progressText) {
-                        loadingProgress.classList.remove('hidden');
-                        const percentage = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
-                        progressBar.style.width = `${percentage}%`;
-                        progressText.textContent = `${current.toLocaleString()} / ${total > current ? `~${total.toLocaleString()}` : current.toLocaleString()} records`;
-                    }
-                });
-                
+                const activityData = await fetchActivityData(
+                    user,
+                    validMaxRecords,
+                    (current, total) => {
+                        // Update progress indicator
+                        if (loadingText) {
+                            loadingText.textContent = `Loading... (${current.toLocaleString()} records)`;
+                        }
+                        if (loadingProgress && progressBar && progressText) {
+                            loadingProgress.classList.remove("hidden");
+                            const percentage =
+                                total > 0
+                                    ? Math.min(
+                                          100,
+                                          Math.round((current / total) * 100),
+                                      )
+                                    : 0;
+                            progressBar.style.width = `${percentage}%`;
+                            progressText.textContent = `${current.toLocaleString()} / ${total > current ? `~${total.toLocaleString()}` : current.toLocaleString()} records`;
+                        }
+                    },
+                );
+
                 if (!activityData || activityData.length === 0) {
-                    throw new Error('No activity data found for this user');
+                    throw new Error("No activity data found for this user");
                 }
 
                 // Final loading message
@@ -947,39 +1160,50 @@ const serializedInitialUser = JSON.stringify(initialUser);
                 updateAnalyze(activityData);
 
                 // Hide loading, show success
-                if (loadingIndicator) loadingIndicator.classList.add('hidden');
-                if (loadingProgress) loadingProgress.classList.add('hidden');
+                if (loadingIndicator) loadingIndicator.classList.add("hidden");
+                if (loadingProgress) loadingProgress.classList.add("hidden");
             } catch (error) {
-                console.error('Error fetching activity:', error);
+                console.error("Error fetching activity:", error);
                 if (errorMessage) {
-                    errorMessage.textContent = error instanceof Error ? error.message : 'Failed to fetch activity data';
-                    errorMessage.classList.remove('hidden');
+                    errorMessage.textContent =
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to fetch activity data";
+                    errorMessage.classList.remove("hidden");
                 }
-                if (loadingIndicator) loadingIndicator.classList.add('hidden');
-                if (loadingProgress) loadingProgress.classList.add('hidden');
+                if (loadingIndicator) loadingIndicator.classList.add("hidden");
+                if (loadingProgress) loadingProgress.classList.add("hidden");
             } finally {
                 fetchButton.disabled = false;
             }
         });
 
         // Allow Enter key to trigger fetch
-        userInput?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+        userInput?.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
                 fetchButton?.click();
             }
         });
 
         // Initialize table with pagination on page load if initial data exists
         function initializeTableWithPagination() {
-            const initialDataScript = document.getElementById('initial-activity-data');
+            const initialDataScript = document.getElementById(
+                "initial-activity-data",
+            );
             if (initialDataScript) {
                 try {
-                    const initialData = JSON.parse(initialDataScript.textContent || '[]');
-                    if (initialData && Array.isArray(initialData) && initialData.length > 0) {
+                    const initialData = JSON.parse(
+                        initialDataScript.textContent || "[]",
+                    );
+                    if (
+                        initialData &&
+                        Array.isArray(initialData) &&
+                        initialData.length > 0
+                    ) {
                         updateTable(initialData, 1);
                     }
                 } catch (e) {
-                    console.error('Error parsing initial activity data:', e);
+                    console.error("Error parsing initial activity data:", e);
                 }
             }
         }
@@ -987,18 +1211,20 @@ const serializedInitialUser = JSON.stringify(initialUser);
         // Auto-fetch activity for saved user on page load
         async function autoFetchSavedUser() {
             const savedUser = loadSavedUser();
-            
+
             // Get initial user from server-side
-            let serverInitialUser = '';
+            let serverInitialUser = "";
             try {
-                const initialUserScript = document.getElementById('initial-user-data');
+                const initialUserScript =
+                    document.getElementById("initial-user-data");
                 if (initialUserScript) {
-                    serverInitialUser = JSON.parse(initialUserScript.textContent || '""') || '';
+                    serverInitialUser =
+                        JSON.parse(initialUserScript.textContent || '""') || "";
                 }
             } catch (e) {
-                console.error('Error parsing initial user:', e);
+                console.error("Error parsing initial user:", e);
             }
-            
+
             // Auto-fetch if:
             // 1. There's a saved user in localStorage
             // 2. The saved user is different from the server-side initial user
@@ -1010,14 +1236,70 @@ const serializedInitialUser = JSON.stringify(initialUser);
             }
         }
 
+        // Tab switching functionality
+        function initTabs() {
+            const tabButtons = document.querySelectorAll(".tab-button");
+            const tabPanels = document.querySelectorAll(".tab-panel");
+
+            function switchTab(tabName) {
+                // Update buttons
+                tabButtons.forEach((btn) => {
+                    const btnTab = btn.getAttribute("data-tab");
+                    if (btnTab === tabName) {
+                        btn.classList.add(
+                            "active",
+                            "border-[var(--color-cyan)]",
+                            "text-[var(--color-cyan)]",
+                        );
+                        btn.classList.remove(
+                            "border-transparent",
+                            "text-[var(--color-ash)]",
+                        );
+                    } else {
+                        btn.classList.remove(
+                            "active",
+                            "border-[var(--color-cyan)]",
+                            "text-[var(--color-cyan)]",
+                        );
+                        btn.classList.add(
+                            "border-transparent",
+                            "text-[var(--color-ash)]",
+                        );
+                    }
+                });
+
+                // Update panels
+                tabPanels.forEach((panel) => {
+                    const panelTab = panel.id.replace("tab-panel-", "");
+                    if (panelTab === tabName) {
+                        panel.classList.remove("hidden");
+                    } else {
+                        panel.classList.add("hidden");
+                    }
+                });
+            }
+
+            // Add click handlers
+            tabButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const tabName = btn.getAttribute("data-tab");
+                    if (tabName) {
+                        switchTab(tabName);
+                    }
+                });
+            });
+        }
+
         // Run initialization when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", () => {
+                initTabs();
                 initializeTableWithPagination();
                 autoFetchSavedUser();
             });
         } else {
             // DOM is already ready
+            initTabs();
             initializeTableWithPagination();
             autoFetchSavedUser();
         }
@@ -1039,5 +1321,33 @@ const serializedInitialUser = JSON.stringify(initialUser);
     .user-input-container button {
         border: none;
         padding: 10px;
+    }
+
+    /* Tab styles */
+    .tab-button {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .tab-button:hover {
+        color: var(--color-bone);
+    }
+
+    .tab-button.active {
+        color: var(--color-cyan);
+        border-bottom-color: var(--color-cyan);
+    }
+
+    .tab-panel {
+        animation: fadeIn 0.2s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
     }
 </style>
