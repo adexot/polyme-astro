@@ -1,0 +1,142 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MatchTable from "../components/MatchTable.astro";
+import { analyzeMatch } from "../lib/xai";
+
+// Sample match data - in a real app, this would come from an API or database
+const baseMatches = [
+    {
+        time: "14:00",
+        match: "ESP vs BAR",
+        prediction: "0:2",
+        history: [
+            { result1: "L", h2h: "0:2", result2: "W" },
+            { result1: "L", h2h: "3:2", result2: "W" },
+            { result1: "W", h2h: "1:4", result2: "W" },
+            { result1: "W", h2h: "2:2", result2: "W" },
+            { result1: "L", h2h: "0:2", result2: "L" },
+        ]
+    },
+    {
+        time: "16:30",
+        match: "MAD vs VAL",
+        prediction: "2:1",
+        history: [
+            { result1: "W", h2h: "2:1", result2: "L" },
+            { result1: "W", h2h: "3:0", result2: "L" },
+            { result1: "L", h2h: "1:2", result2: "W" },
+            { result1: "W", h2h: "2:0", result2: "L" },
+            { result1: "W", h2h: "1:0", result2: "L" },
+        ]
+    },
+    {
+        time: "19:00",
+        match: "BIL vs ATH",
+        prediction: "1:1",
+        history: [
+            { result1: "D", h2h: "1:1", result2: "D" },
+            { result1: "W", h2h: "2:0", result2: "L" },
+            { result1: "L", h2h: "0:1", result2: "W" },
+            { result1: "W", h2h: "3:1", result2: "L" },
+            { result1: "D", h2h: "0:0", result2: "D" },
+        ]
+    },
+];
+
+// Optionally generate AI predictions for matches (only if API key is set)
+const matches = await Promise.all(
+    baseMatches.map(async (match) => {
+        // Only try AI prediction if API key is available
+        if (import.meta.env.XAI_API_KEY) {
+            try {
+                const [team1, team2] = match.match.split(' vs ');
+                const result = await analyzeMatch({
+                    team1: team1 || 'Team 1',
+                    team2: team2 || 'Team 2',
+                    history: match.history,
+                });
+
+                if (result.success && result.data) {
+                    // Try to parse JSON response
+                    try {
+                        const parsed = JSON.parse(result.data);
+                        if (parsed.prediction) {
+                            return {
+                                ...match,
+                                prediction: parsed.prediction,
+                                aiReasoning: parsed.reasoning,
+                                aiGenerated: true,
+                            };
+                        }
+                    } catch {
+                        // If not JSON, try to extract prediction
+                        const predictionMatch = result.data.match(/(\d+:\d+)/);
+                        if (predictionMatch) {
+                            return {
+                                ...match,
+                                prediction: predictionMatch[1],
+                                aiReasoning: result.data,
+                                aiGenerated: true,
+                            };
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error generating AI prediction:', error);
+            }
+        }
+        
+        // Return original match if AI prediction fails or API key not set
+        return {
+            ...match,
+            aiGenerated: false,
+        };
+    })
+);
+---
+
+<BaseLayout title="Match Predictions">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-[var(--color-cyan)]">Match Predictions</h1>
+            {import.meta.env.XAI_API_KEY ? (
+                <button
+                    id="regenerate-predictions"
+                    class="px-4 py-2 bg-[var(--color-cyan)] text-[var(--color-slate)] font-semibold rounded-lg hover:bg-[var(--color-cyan)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Regenerate AI Predictions
+                </button>
+            ) : (
+                <div class="text-sm text-[var(--color-ash)]">
+                    Set XAI_API_KEY to enable AI predictions
+                </div>
+            )}
+        </div>
+        
+        <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg p-6">
+            <MatchTable matches={matches} />
+        </div>
+    </div>
+
+    <script is:inline>
+        // @ts-nocheck
+        const regenerateButton = document.getElementById('regenerate-predictions');
+        
+        if (regenerateButton) {
+            regenerateButton.addEventListener('click', async () => {
+                regenerateButton.disabled = true;
+                regenerateButton.textContent = 'Generating...';
+                
+                try {
+                    // Reload the page to regenerate predictions
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Error regenerating predictions:', error);
+                    regenerateButton.disabled = false;
+                    regenerateButton.textContent = 'Regenerate AI Predictions';
+                }
+            });
+        }
+    </script>
+</BaseLayout>
+

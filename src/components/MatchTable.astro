@@ -1,0 +1,288 @@
+---
+export interface MatchData {
+    time: string;
+    match: string;
+    prediction: string;
+    history: {
+        result1: string; // W or L
+        h2h: string; // Score like "0:2"
+        result2: string; // W or L
+    }[];
+    aiGenerated?: boolean;
+    aiReasoning?: string;
+}
+
+export interface Props {
+    matches: MatchData[];
+}
+
+const { matches } = Astro.props;
+---
+
+<div class="w-full">
+    <table class="w-full border-collapse">
+        <thead>
+            <tr class="border-b border-[var(--color-mist)]">
+                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                    Time
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                    Match
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                    Prediction
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider w-12">
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {matches.map((match, index) => {
+                const [team1, team2] = match.match.split(' vs ');
+                const historyJson = JSON.stringify(match.history);
+                return (
+                <>
+                    <tr 
+                        class="match-row border-b border-[var(--color-mist)] hover:bg-[var(--color-charcoal)]/50 transition-colors cursor-pointer"
+                        data-match-index={index}
+                    >
+                        <td class="px-4 py-3 text-sm text-[var(--color-bone)]">
+                            {match.time}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-[var(--color-bone)]">
+                            {match.match}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-[var(--color-bone)]">
+                            <div class="flex items-center gap-2">
+                                <span id={`prediction-${index}`}>{match.prediction}</span>
+                                {match.aiGenerated && (
+                                    <span 
+                                        class="px-2 py-0.5 text-xs bg-[var(--color-cyan)]/20 text-[var(--color-cyan)] rounded"
+                                        title="AI Generated Prediction"
+                                    >
+                                        AI
+                                    </span>
+                                )}
+                                <button
+                                    class="ai-predict-btn px-2 py-1 text-xs bg-[var(--color-mist)] text-[var(--color-bone)] rounded hover:bg-[var(--color-ash)] transition-colors"
+                                    data-match-index={index}
+                                    data-team1={team1}
+                                    data-team2={team2}
+                                    data-history={historyJson}
+                                    title="Generate AI Prediction"
+                                    onclick="event.stopPropagation()"
+                                >
+                                    🤖
+                                </button>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <svg 
+                                class="match-chevron w-5 h-5 text-[var(--color-ash)] transition-transform duration-200"
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </td>
+                    </tr>
+                    <tr 
+                        class="match-details hidden"
+                        data-match-details-index={index}
+                    >
+                        <td colspan="4" class="px-4 py-4 bg-[var(--color-charcoal)]/30">
+                            <div class="space-y-4">
+                                {match.aiReasoning && (
+                                    <div class="bg-[var(--color-cyan)]/10 border border-[var(--color-cyan)]/30 rounded-lg p-3">
+                                        <div class="text-xs font-semibold text-[var(--color-cyan)] mb-1 uppercase tracking-wider">
+                                            AI Analysis
+                                        </div>
+                                        <div class="text-sm text-[var(--color-bone)]">
+                                            {match.aiReasoning}
+                                        </div>
+                                    </div>
+                                )}
+                                <div class="bg-[var(--color-slate)] border border-[var(--color-mist)] rounded-lg overflow-hidden">
+                                    <table class="w-full border-collapse">
+                                        <thead>
+                                            <tr class="border-b border-[var(--color-mist)]">
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                                    W
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                                    H2H
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                                    W
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {match.history.map((historyItem, historyIndex) => (
+                                                <tr class="border-b border-[var(--color-mist)]/50 last:border-b-0 hover:bg-[var(--color-charcoal)]/30">
+                                                    <td class="px-4 py-2 text-sm text-[var(--color-bone)]">
+                                                        {historyItem.result1}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-sm text-[var(--color-bone)]">
+                                                        {historyItem.h2h}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-sm text-[var(--color-bone)]">
+                                                        {historyItem.result2}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </>
+            );
+            })}
+        </tbody>
+    </table>
+</div>
+
+<script is:inline>
+    // @ts-nocheck
+    async function generateAIPrediction(matchIndex) {
+        const button = document.querySelector(`[data-match-index="${matchIndex}"].ai-predict-btn`);
+        if (!button) return;
+        
+        const team1 = button.getAttribute('data-team1') || '';
+        const team2 = button.getAttribute('data-team2') || '';
+        const historyJson = button.getAttribute('data-history') || '[]';
+        
+        let history = [];
+        try {
+            history = JSON.parse(historyJson);
+        } catch (e) {
+            console.error('Error parsing history:', e);
+        }
+        
+        const matchData = { team1, team2, history };
+        const predictionSpan = document.getElementById(`prediction-${matchIndex}`);
+        
+        if (!button || !predictionSpan) return;
+        
+        // Disable button and show loading
+        button.disabled = true;
+        const originalText = button.textContent;
+        button.textContent = '⏳';
+        
+        try {
+            const response = await fetch('/api/matches/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    team1: matchData.team1,
+                    team2: matchData.team2,
+                    history: matchData.history,
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to generate prediction');
+            }
+            
+            const data = await response.json();
+            
+            // Update prediction
+            predictionSpan.textContent = data.prediction || predictionSpan.textContent;
+            
+            // Add AI badge if not present
+            if (!predictionSpan.nextElementSibling?.textContent?.includes('AI')) {
+                const aiBadge = document.createElement('span');
+                aiBadge.className = 'px-2 py-0.5 text-xs bg-[var(--color-cyan)]/20 text-[var(--color-cyan)] rounded';
+                aiBadge.textContent = 'AI';
+                aiBadge.title = 'AI Generated Prediction';
+                predictionSpan.parentElement?.insertBefore(aiBadge, predictionSpan.nextSibling);
+            }
+            
+            // Update reasoning in details if expanded
+            const detailsRow = document.querySelector(`[data-match-details-index="${matchIndex}"]`);
+            if (detailsRow && !detailsRow.classList.contains('hidden') && data.reasoning) {
+                let aiSection = detailsRow.querySelector('.ai-analysis-section');
+                if (!aiSection) {
+                    aiSection = document.createElement('div');
+                    aiSection.className = 'ai-analysis-section bg-[var(--color-cyan)]/10 border border-[var(--color-cyan)]/30 rounded-lg p-3 mb-4';
+                    aiSection.innerHTML = `
+                        <div class="text-xs font-semibold text-[var(--color-cyan)] mb-1 uppercase tracking-wider">
+                            AI Analysis
+                        </div>
+                        <div class="text-sm text-[var(--color-bone)] ai-reasoning"></div>
+                    `;
+                    const firstChild = detailsRow.querySelector('td > div');
+                    if (firstChild) {
+                        firstChild.insertBefore(aiSection, firstChild.firstChild);
+                    }
+                }
+                const reasoningDiv = aiSection.querySelector('.ai-reasoning');
+                if (reasoningDiv) {
+                    reasoningDiv.textContent = data.reasoning;
+                }
+            }
+        } catch (error) {
+            console.error('Error generating AI prediction:', error);
+            alert('Failed to generate AI prediction. Please try again.');
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+    
+    function initMatchTable() {
+        const matchRows = document.querySelectorAll('.match-row');
+        
+        matchRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const matchIndex = this.getAttribute('data-match-index');
+                const detailsRow = document.querySelector(`[data-match-details-index="${matchIndex}"]`);
+                const chevron = this.querySelector('.match-chevron');
+                
+                if (detailsRow && chevron) {
+                    const isHidden = detailsRow.classList.contains('hidden');
+                    
+                    if (isHidden) {
+                        // Expand
+                        detailsRow.classList.remove('hidden');
+                        chevron.style.transform = 'rotate(180deg)';
+                    } else {
+                        // Collapse
+                        detailsRow.classList.add('hidden');
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                }
+            });
+        });
+        
+        // Add click handlers for AI prediction buttons
+        document.querySelectorAll('.ai-predict-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const matchIndex = btn.getAttribute('data-match-index');
+                if (matchIndex) {
+                    await generateAIPrediction(parseInt(matchIndex));
+                }
+            });
+        });
+    }
+    
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMatchTable);
+    } else {
+        initMatchTable();
+    }
+</script>
+
+<style>
+    .match-chevron {
+        transition: transform 0.2s ease;
+    }
+</style>
+
