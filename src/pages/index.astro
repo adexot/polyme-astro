@@ -241,7 +241,13 @@ const serializedInitialUser = JSON.stringify(initialUser);
                                         Title
                                     </th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                        Bet
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
                                         Type
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                        Outcome
                                     </th>
                                 </tr>
                             </Fragment>
@@ -258,7 +264,19 @@ const serializedInitialUser = JSON.stringify(initialUser);
                                                 {activity.title}
                                             </td>
                                             <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                                {activity.outcome || "-"}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
                                                 {activity.type}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm">
+                                                {activity.outcomeIndex === 0 ? (
+                                                    <span class="text-red-500">LOSS</span>
+                                                ) : activity.outcomeIndex === 1 ? (
+                                                    <span class="text-green-500">WIN</span>
+                                                ) : (
+                                                    <span class="text-[var(--color-ash)]">-</span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -551,14 +569,27 @@ const serializedInitialUser = JSON.stringify(initialUser);
                                     Title
                                 </th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                    Bet
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
                                     Type
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-cyan)] uppercase tracking-wider">
+                                    Outcome
                                 </th>
                             </tr>
                         </thead>
                         <tbody class="bg-[var(--color-slate)] divide-y divide-[var(--color-mist)]">
                             ${currentPageData
                                 .map(
-                                    (activity) => `
+                                    (activity) => {
+                                        let outcomeDisplay = '<span class="text-[var(--color-ash)]">-</span>';
+                                        if (activity.outcomeIndex === 0) {
+                                            outcomeDisplay = '<span class="text-red-500">LOSS</span>';
+                                        } else if (activity.outcomeIndex === 1) {
+                                            outcomeDisplay = '<span class="text-green-500">WIN</span>';
+                                        }
+                                        return `
                                 <tr class="hover:bg-[var(--color-charcoal)]/50 transition-colors">
                                     <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
                                         ${formatTimestamp(activity.timestamp)}
@@ -567,10 +598,17 @@ const serializedInitialUser = JSON.stringify(initialUser);
                                         ${activity.title || ""}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
+                                        ${activity.outcome || "-"}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-[var(--color-bone)]">
                                         ${activity.type || ""}
                                     </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        ${outcomeDisplay}
+                                    </td>
                                 </tr>
-                            `,
+                            `;
+                                    },
                                 )
                                 .join("")}
                         </tbody>
